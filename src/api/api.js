@@ -1,6 +1,6 @@
 // src/api/api.js
 import axios from "axios";
-// import { useAuthStore } from "@/stores/auth";
+import { useAuthStore } from "@/stores/auth";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -11,7 +11,15 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-//   const authStore = useAuthStore();
+  const authStore = useAuthStore();
+  console.log('token expre ? ',authStore.isAuthenticated.value);
+  if(!authStore.isAuthenticated.value) {
+    // authStore.clearAuth();
+    // return;
+  }
+  if (authStore.token) {
+    config.headers.Authorization = `Bearer ${authStore.token.value}`;
+  }
 
   return config;
 });

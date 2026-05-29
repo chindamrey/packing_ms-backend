@@ -76,32 +76,79 @@
                         <span class="nav-label">{{ item.label }}</span>
                     </base-button>
                 </li> -->
+                
                 <li class="nav-item">
-                    <router-link class="nav-link" to="/dashboard/settings"
-                        exact-active-class="active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-    </svg>Settings</router-link>
-                </li>
-                <li class="nav-item">
-                    <router-link class="nav-link" to="/dashboard/logout"
-                        exact-active-class="active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-      <polyline points="16 17 21 12 16 7"/>
-      <line x1="21" y1="12" x2="9" y2="12"/>
-    </svg>Logout</router-link>
+                    <button class="nav-link" @click="logoutModal = true"><svg width="18" height="18" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>Logout</button>
                 </li>
             </ul>
         </div>
     </aside>
 
+    <!--Delete Vehicle Type Modal -->
 
+    <BaseModal v-if="logoutModal" title="Confirm Logout" @close="logoutModal = false">
+        <p>Are you sure you want to logout?</p>
+        <template #footer>
+            <BaseButton @click="logoutModal = false" variant="secondary">Cancel</BaseButton>
+            <BaseButton @click="comfirmLogout" variant="dangerous" class="ms-2" :loading="isLoading">
+                Logout
+            </BaseButton>
+        </template>
+    </BaseModal>
+    <!-- Success Toast -->
+    <Transition name="toast">
+        <div v-if="showSuccess" class="toast-success">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            {{ msg }}
+        </div>
+    </Transition>
 
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import BaseModal from '@/components/base/BaseModal.vue';
+import BaseButton from '@/components/base/BaseButton.vue';
+import { useAuthStore } from '@/stores/auth';
+import  {useRouter} from 'vue-router';
 
+
+const router = useRouter();
+const authStore = useAuthStore();
+const logoutModal = ref(false);
+const isLoading = ref(false);
+const showSuccess = ref(false);
+const msg = ref('')
+
+const comfirmLogout = async () => {
+    isLoading.value = true;
+    try {
+        showSuccess.value = true;
+        const res = await authStore.logout();
+        msg.value = res.msg;
+        router.push('/login');
+    }
+    catch (e) {
+        console.log(e);
+
+    }
+    finally{
+        setTimeout(() =>{
+            showSuccess.value = false;
+            logoutModal.value = false;
+        },1500)
+    }
+}
 </script>
 
 <style scoped>
@@ -234,5 +281,29 @@ nav ul,
     border: 1px dashed #c8cedf;
     border-radius: 10px;
     color: #adb5c7;
+}
+
+/* Toast */
+.toast-success {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111827;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 13.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    z-index: 10;
+}
+
+.toast-success svg {
+    color: #10b981;
 }
 </style>

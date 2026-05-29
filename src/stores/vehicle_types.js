@@ -5,6 +5,15 @@ import { ref } from 'vue';
 export const useVehicleTypeStore = defineStore('vehicleTypes', () => {
     const vehicleType = ref();
     
+const getAllVehicleTypes = async () => {
+        try {
+            const res = await api.get('/vt/vehicle-type');
+            vehicleType.value = res.data.data;
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     const getVehicleTypeById = async (id) => {
         try {
             const res = await api.get(`/vt/vehicle-type/${id}`);
@@ -54,6 +63,7 @@ export const useVehicleTypeStore = defineStore('vehicleTypes', () => {
         getVehicleTypeById,
         createVehicleType,
         editVehicleTypeById,
-        removeVehicleTypeById
+        removeVehicleTypeById,
+        getAllVehicleTypes
     }
 })

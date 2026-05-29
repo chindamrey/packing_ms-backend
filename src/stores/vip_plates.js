@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import api from '@/api/api';
 import { ref } from 'vue';
+// import { L } from 'vue-router/dist/index-D_VEAp3P.js';
 
 export const useVipPlatesStore = defineStore('vehicleTypes', () => {
     const vipPlates = ref();
@@ -36,7 +37,18 @@ export const useVipPlatesStore = defineStore('vehicleTypes', () => {
 
     const editVipPlate = async (id,payload) => {
         try {
-           const res = await api.put(`/vip/vip-plate`) 
+           const res = await api.put(`/vip/vip-plate/${id}`,payload);
+           return res.data;
+        } catch (e) {
+            console.log(e);
+            
+        }
+    }
+
+    const deleteVipPlate = async (id) => {
+        try {
+            const res = await api.delete(`/vip/vip-plate/${id}`);
+            return res.data;
         } catch (e) {
             console.log(e);
             
@@ -46,6 +58,8 @@ export const useVipPlatesStore = defineStore('vehicleTypes', () => {
         vipPlates,
         getAllVipPlates,
         addVipPlate,
-        getVipPlateById
+        getVipPlateById,
+        editVipPlate,
+        deleteVipPlate
     }
 })

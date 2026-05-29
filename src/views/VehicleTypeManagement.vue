@@ -93,14 +93,7 @@
         </tbody>
       </table>
 
-      <div class="table-footer">
-        <span class="table-count">Showing {{ vehicles.length }} of {{ vehicles.length }} vehicle categories</span>
-        <div class="pagination">
-          <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">&#8249;</button>
-          <button class="page-btn page-btn--active">{{ currentPage }}</button>
-          <button class="page-btn" @click="currentPage++">&#8250;</button>
-        </div>
-      </div>
+    
     </div>
 
     <!--Delete Vehicle Type Modal -->

@@ -23,8 +23,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="form-title">Edit VIP Plate</h1>
-                        <p class="form-subtitle">Edit VIP Plate info details below</p>
+                        <h1 class="form-title">Add Parking Slot</h1>
+                        <p class="form-subtitle">Fill in the details below</p>
                     </div>
                 </div>
             </div>
@@ -35,136 +35,37 @@
             <!-- Form Body -->
             <div class="form-body">
 
-                <!-- Name Field -->
-                <div class="field-group"
-                    :class="{ focused: plateFocused, filled: form.plate_number, error: errors.plate_number }">
+                <!-- From Hour Field -->
+                <div class="field-group" :class="{ focused: slotAmount, filled: form.slot, error: errors.slot }">
                     <label class="field-label">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
-                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M12 7v5l3 3"></path>
+                            <path d="M4 12h3"></path>
                         </svg>
-                        Plate Number <span class="required-star">*</span>
+                        Slot Amount <span class="required-star">*</span>
                     </label>
                     <div class="input-wrapper">
-                        <input v-model="form.plate_number" type="text" class="field-input"
-                            placeholder="Enter plate number ..." @focus="plateFocused = true"
-                            @blur="plateFocused = false; validatePlate()" />
+                        <input v-model.number="form.slot" type="number" class="field-input"
+                            placeholder="Enter Slot Amount ..." @focus="slotAmount = true"
+                            @blur="slotAmount = false; validateSlotAmount()" />
                         <div class="input-suffix">
-                            <span v-if="form.plate_number" class="char-count">{{ form.plate_number.length }}</span>
-                            <svg v-if="form.plate_number && !errors.plate_number" class="valid-icon" width="16"
-                                height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                        </div>
-                    </div>
-                    <p v-if="errors.plate_number" class="error-msg">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                        </svg>
-                        {{ errors.plate_number }}
-                    </p>
-                </div>
-
-                <!-- Owner Name Field  -->
-
-                <div class="field-group"
-                    :class="{ focused: nameFocused, filled: form.owner_name, error: errors.owner_name }">
-                    <label class="field-label">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                        </svg>
-                        Owner Name <span class="required-star">*</span>
-                    </label>
-                    <div class="input-wrapper">
-                        <input v-model="form.owner_name" type="text" class="field-input"
-                            placeholder="Enter plate number ..." @focus="nameFocused = true"
-                            @blur="nameFocused = false; validateName()" />
-                        <div class="input-suffix">
-                            <span v-if="form.owner_name" class="char-count">{{ form.owner_name.length }}</span>
-                            <svg v-if="form.owner_name && !errors.owner_name" class="valid-icon" width="16" height="16"
+                            <span v-if="form.slot" class="char-count">{{ form.slot.length }}</span>
+                            <svg v-if="form.slot && !errors.slot" class="valid-icon" width="16" height="16"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                 stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="20 6 9 17 4 12" />
                             </svg>
                         </div>
                     </div>
-                    <p v-if="errors.owner_name" class="error-msg">
+                    <p v-if="errors.slot" class="error-msg">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                             <path
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                         </svg>
-                        {{ errors.owner_name }}
-                    </p>
-                </div>
-                <!------------ Status  ----------->
-                <div class="field-group">
-                    <label class="field-label">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2l3 6 6 .9-4.5 4.4 1 6.2L12 17l-5.5 2.5 1-6.2L3 8.9 9 8z" />
-                        </svg>
-                        Status <span class="required-star">*</span>
-                    </label>
-
-                    <div class="input-wrapper radio-wrapper">
-                        <label class="radio-option">
-                            <input type="radio" value="1" v-model="form.is_active" @change="validateStatus" />
-                            <span class="radio-label">Active</span>
-                        </label>
-
-                        <label class="radio-option">
-                            <input type="radio" value="0" v-model="form.is_active" @change="validateStatus" />
-                            <span class="radio-label">Inactive</span>
-                        </label>
-                    </div>
-
-                    <p v-if="errors.is_active" class="error-msg">
-                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                        </svg>
-                        {{ errors.is_active }}
-                    </p>
-                </div>
-                <!-- Discount Percentage Field -->
-                <div class="field-group"
-                    :class="{ focused: numberFocused, filled: form.discount_percentage !== '', error: errors.discount_percentage }">
-                    <label class="field-label">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2l3 6 6 .9-4.5 4.4 1 6.2L12 17l-5.5 2.5 1-6.2L3 8.9 9 8z" />
-                        </svg>
-                        Discount% <span class="required-star">*</span>
-                    </label>
-                    <div class="input-wrapper number-wrapper">
-                        <button class="stepper-btn" @click="decrement" :disabled="form.discount_percentage <= 0">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="3" stroke-linecap="round">
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                        </button>
-                        <input v-model.number="form.discount_percentage" type="number" class="field-input number-input"
-                            placeholder="0" min="0" @focus="numberFocused = true"
-                            @blur="numberFocused = false; validateNumber()" />
-                        <button class="stepper-btn" @click="increment">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="3" stroke-linecap="round">
-                                <line x1="12" y1="5" x2="12" y2="19" />
-                                <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <p v-if="errors.discount_percentage" class="error-msg">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                        </svg>
-                        {{ errors.discount_percentage }}
+                        {{ errors.slot }}
                     </p>
                 </div>
 
@@ -208,7 +109,7 @@
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                         <polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
-                   {{msg}}
+                    {{ msg }}
                 </div>
             </Transition>
         </div>
@@ -220,123 +121,80 @@ import { ref, reactive, onMounted } from 'vue';
 import BaseButton from "@/components/base/BaseButton.vue"
 import { useRequiredValidator } from '@/composables/useRequiredValidator';
 import { useRouter, useRoute } from 'vue-router';
-import { useVipPlatesStore } from '@/stores/vip_plates';
+import { usePackingLogsStore } from '@/stores/packing_logs';
+import { useSlotStore } from '@/stores/slots';
 
-
-const useVipPlate = useVipPlatesStore()
 const router = useRouter();
 const route = useRoute();
+const usePackingLogs = usePackingLogsStore();
+const useSlots = useSlotStore();
 const { errors, validateField } = useRequiredValidator()
 
 onMounted(async () => {
-    await useVipPlate.getVipPlateById(vipId)
-    const data = useVipPlate.vipPlates;
-    form.plate_number = data.plate_number;
-    form.discount_percentage = data.discount_percentage;
-    form.owner_name = data.owner_name;
-    form.is_active = data.is_active === null ? 0 : data.is_active;
+    slotId.value = route.params.id;
+console.log('slot id ',slotId.value);
+
+    // console.log(await usePriceRules.priceRules.data.vehicle_type_number);
+    const data = await usePackingLogs.getCapacitySlot();
+    // console.log('data in parking slot : ', await usePackingLogs.getCapacitySlot());
+
+    form.slot = data;
+
 })
-// const discount_percentageFocused = ref(false)
-
-// const form = reactive({
-//   discount_percentage: '', // 'active' | 'inactive' | ''
-// })
-
-// const errors = reactive({
-//   discount_percentage: '',
-// })
-
-function validateDiscount() {
-    if (!form.discount_percentage) {
-        errors.discount_percentage = 'Please select a status.'
-    } else {
-        errors.discount_percentage = ''
-    }
-}
-
 
 const form = reactive({
-    plate_number: '',
-    owner_name: '',
-    discount_percentage: 0,
-    discount_percentage: 0
+    slot: 0
 })
 
 // const errors = reactive({ name: '', numberInstand: '' })
-const nameFocused = ref(false)
-const numberFocused = ref(false)
+
 const isLoading = ref(false)
 const showSuccess = ref(false)
-const plateFocused = ref(false);
-const vipId = route.params.id;
-const msg = ref('')
+const slotAmount = ref(false);
+const slotId = ref();
+const msg = ref();
 
 
-function validatePlate() {
-    errors.plate_number = form.plate_number.trim() ? '' : 'Plate number is required.'
-}
-const validateStatus = () => {
-    if (form.is_active === null || form.is_active === undefined || form.is_active === '') {
-        errors.is_active = 'Status is required.';
-        return;
-    } else {
-        errors.is_active = ''
-    }
-}
-function validateName() {
-    console.log(!errors.owner_name);
-    
-    if (!form.owner_name || form.owner_name.trim() === "") {
-        errors.owner_name = 'Owner name is required.';
-        return;
+const validateSlotAmount = () => {
+    if (form.slot === '' || form.slot === null) {
+        errors.slot = 'Slot amount is required.'
+    } else if (form.slot < 0) {
+        errors.slot = 'Must be a positive number.'
+    } else if (form.slot  < usePackingLogs.currentSlot){
+        errors.slot = `Cannot be less than current occupied slot (${usePackingLogs.currentSlot}).`     
     }
     else{
-        errors.owner_name = '';
-    }
-    // errors.owner_name = form.owner_name.trim() ? '' : 
-}
-function validateNumber() {
-    if (form.discount_percentage === '' || form.discount_percentage === null) {
-        errors.discount_percentage = 'Discount is required.'
-    } else if (form.numberInstand < 0) {
-        errors.discount_percentage = 'Must be a positive number.'
-    } else {
-        errors.discount_percentage = ''
+        errors.slot = ''
     }
 }
-function increment() { form.discount_percentage++ }
-function decrement() { if (form.discount_percentage > 0) form.discount_percentage-- }
 
-function handleReset() {
-    form.name = ''
-    form.numberInstand = 0
-    errors.name = ''
-    errors.numberInstand = ''
+const increment = () => { form.slot++ }
+const decrement = () => { if (form.slot > 0) form.slot-- }
+
+const handleReset = () => {
+    form.slot = ''
 }
 
 const handleSubmit = async () => {
+    console.log('form edit slot : ',form);
 
-    // console.log('owner name : ', form.owner_name);
-    validateStatus()
-    validateName()
-    validatePlate()
-    validateNumber()
+    validateSlotAmount();
 
-    if (errors.owner_name || errors.discount_percentage || errors.plate_number || errors.is_active) return;
-    const res = await useVipPlate.editVipPlate(vipId, form)
+    if (errors.slot) return
+    const res = await useSlots.editSlot(slotId.value, form)
     msg.value = res.msg;
     isLoading.value = true
 
     showSuccess.value = true
     setTimeout(() => {
         isLoading.value = false
-        router.push({ name: 'vip-plates.index' })
+        router.push({ name: 'overview' })
         showSuccess.value = false
     }, 2000)
 }
 
 const handleBack = () => {
-    router.push({ name: 'vip-plates.index' })
+    router.push({ name: 'overview' })
 }
 </script>
 
@@ -478,31 +336,6 @@ const handleBack = () => {
     line-height: 1;
 }
 
-.radio-wrapper {
-    display: flex;
-    gap: 1.5rem;
-    padding: 0.5rem 0.5rem;
-}
-
-.radio-option {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    cursor: pointer;
-}
-
-.radio-option input[type="radio"] {
-    accent-color: var(--primary, #6366f1);
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-
-.radio-label {
-    font-size: 0.9rem;
-    color: var(--text, #374151);
-}
-
 .input-wrapper {
     display: flex;
     align-items: center;
@@ -541,6 +374,68 @@ const handleBack = () => {
 .field-input::placeholder {
     color: #c4c9d4;
     font-weight: 400;
+}
+
+.radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    user-select: none;
+}
+
+.radio-option:hover {
+    border-color: #94a3b8;
+}
+
+.radio-option.selected {
+    border-color: #6366f1;
+    background: #eef2ff;
+}
+
+/* Hide native radio, use custom dot */
+.radio-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.radio-custom {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+}
+
+.radio-option.selected .radio-custom {
+    border-color: #6366f1;
+    background: #6366f1;
+    box-shadow: inset 0 0 0 3px #fff;
+}
+
+.radio-label {
+    font-size: 13px;
+    color: #374151;
+}
+
+.radio-option.selected .radio-label {
+    color: #4f46e5;
+    font-weight: 500;
 }
 
 /* Number field custom stepper */

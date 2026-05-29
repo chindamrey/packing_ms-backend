@@ -7,7 +7,7 @@
         <p class="page-subtitle">Authorize and manage priority parking access for special whitelist vehicles.</p>
       </div>
       <base-button variant="primary" label="" @click="createVip">
-      Register VIP Plate
+        Register VIP Plate
       </base-button>
     </div>
 
@@ -19,13 +19,13 @@
       </div>
       <div class="stat-card">
         <div class="stat-label">ACTIVE NOW</div>
-        <div class="stat-value stat-value--blue">{{ useVipPlates.vipPlates?.active_status}}</div>
+        <div class="stat-value stat-value--blue">{{ useVipPlates.vipPlates?.active_status }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">EXPIRED</div>
         <div class="stat-value">{{ useVipPlates.vipPlates?.unActive_status }}</div>
       </div>
-     
+
     </div>
 
     <!-- Table Card -->
@@ -33,16 +33,28 @@
       <!-- Search + Filter -->
       <div class="toolbar">
         <div class="search-wrap">
-          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
           <input v-model="search" class="search-input" placeholder="Search by plate or owner name..." />
         </div>
         <div class="toolbar-right">
           <button class="btn-tool" @click="filterOpen = !filterOpen">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
             Filter
           </button>
           <button class="btn-tool" @click="exportCSV">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
             Export
           </button>
         </div>
@@ -78,15 +90,16 @@
             <td class="owner-name">{{ row?.owner_name == null ? 'Null' : row?.owner_name }}</td>
             <td>
               <span class="status-dot" :class="row.is_active === 1 ? 'dot-active' : 'dot-expired'"></span>
-              <span class="status-text" :class="row.is_active === 1 ? 'text-active' : 'text-expired'">{{ row.is_active === 1 ? 'Active' : 'Expired'}}</span>
+              <span class="status-text" :class="row.is_active === 1 ? 'text-active' : 'text-expired'">{{ row.is_active
+                === 1 ? 'Active' : 'Expired'}}</span>
             </td>
-            <td class="discount">{{ row.discount_percentage == null ? '0' : row.discount_percentage}} %</td>
+            <td class="discount">{{ row.discount_percentage == null ? '0' : row.discount_percentage }} %</td>
             <td>
               <div class="row-actions">
                 <button class="action-btn" title="Edit" @click="editPlate(row.id)">
                   <IconEdit />
                 </button>
-                <button class="action-btn action-btn-danger" title="Delete" @click="deleteVipPlate(row.id)">
+                    <button class="action-btn action-btn-danger" title="Delete" @click="deleteVipPlate(row.id)">
                   <IconTrash />
                 </button>
               </div>
@@ -98,81 +111,69 @@
         </tbody>
       </table>
 
-      <!-- Footer -->
-      <div class="table-footer">
-        <span class="entry-count">Showing {{ rangeStart }} to {{ rangeEnd }} of {{ filteredRows.length }} entries</span>
-        <div class="pagination">
-          <button class="pg-btn" :disabled="currentPage === 1" @click="currentPage--">&#8249;</button>
-          <button
-            v-for="p in totalPages" :key="p"
-            class="pg-btn"
-            :class="{ 'pg-btn--active': p === currentPage }"
-            @click="currentPage = p"
-          >{{ p }}</button>
-          <button class="pg-btn" :disabled="currentPage === totalPages" @click="currentPage++">&#8250;</button>
-        </div>
-      </div>
+      
     </div>
 
-     <!--Delete Vehicle Type Modal -->
+    <!--Delete Vehicle Type Modal -->
 
-   <BaseModal v-if="deleteVipModal" title="Confirm Delete" @close="deleteVipModal = false">
-        <p>Are you sure you want to delete this vehicle type ?</p>
-        <template #footer>
-            <BaseButton @click="deleteModal = false" variant="secondary">Cancel</BaseButton>
-            <BaseButton @click="comfirmDelete" variant="dangerous" class="ms-2" :loading="isLoading">
-                Delete
-            </BaseButton>
-        </template>
+    <BaseModal v-if="deleteVipModal" title="Confirm Delete" @close="deleteVipModal = false">
+      <p>Are you sure you want to delete this vehicle type ?</p>
+      <template #footer>
+        <BaseButton @click="deleteModal = false" variant="secondary">Cancel</BaseButton>
+        <BaseButton @click="comfirmDelete" variant="dangerous" class="ms-2" :loading="isLoading">
+          Delete
+        </BaseButton>
+      </template>
     </BaseModal>
-     <!-- Success Toast -->
-      <Transition name="toast">
-        <div v-if="showSuccess" class="toast-success">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-            <polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-          {{ msg }}
-        </div>
-      </Transition>
+    <!-- Success Toast -->
+    <Transition name="toast">
+      <div v-if="showSuccess" class="toast-success">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        {{ msg }}
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed,h, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, h, onMounted, onBeforeUnmount } from 'vue'
 import BaseButton from '@/components/base/BaseButton.vue';
 import { useVipPlatesStore } from '@/stores/vip_plates';
-import {useRouter} from 'vue-router';
+import { useRouter } from 'vue-router';
 import BaseModal from '@/components/base/BaseModal.vue';
 
 const router = useRouter();
 const useVipPlates = useVipPlatesStore();
 
-onMounted(async()=>{
+onMounted(async () => {
   await useVipPlates.getAllVipPlates();
-  console.log('vip plate ',await useVipPlates.vipPlates.data)
+  console.log('vip plate ', await useVipPlates.vipPlates.data)
 })
 
 const deleteVipModal = ref(false)
 const deleteVipPlate = (id) => {
-  deleteVipModal.value=true;
+  deleteId.value = id;
+  deleteVipModal.value = true;
 }
 // ── Data ─────────────────────────────────────────────────────────────────────
 
 const allPlates = ref([
-  { id: 1, plate: 'VIP-001-NYC', owner: "Mayor's Office - Exec", status: 'Active',discount:30 },
-  { id: 2, plate: 'GHOST-928', owner: 'Alpha Logistics Corp', status: 'Active',discount:25 },
-  { id: 3, plate: 'TEMP-4422', owner: 'Marcus Chen', status: 'Expired',discount:0 },
-  { id: 4, plate: 'LUXE-TRK-1', owner: 'Riverside Grand Hotel', status: 'Active',discount:10},
-  { id: 5, plate: 'CITY-900-PD', owner: 'Public Safety Dept',status: 'Active',discount:15 },
-  { id: 6, plate: 'EXEC-7700', owner: 'Governor Office', status: 'Active',discount:20},
-  { id: 7, plate: 'MED-FLEET-3', owner: 'City Hospital Network', status: 'Active',discount:5},
-  { id: 8, plate: 'DIPLO-44', owner: 'Foreign Affairs Bureau', status: 'Active',discount:18 },
-  { id: 9, plate: 'OLD-CORP-12', owner: 'Harrington & Sons LLC',status: 'Expired',discount:0 },
+  { id: 1, plate: 'VIP-001-NYC', owner: "Mayor's Office - Exec", status: 'Active', discount: 30 },
+  { id: 2, plate: 'GHOST-928', owner: 'Alpha Logistics Corp', status: 'Active', discount: 25 },
+  { id: 3, plate: 'TEMP-4422', owner: 'Marcus Chen', status: 'Expired', discount: 0 },
+  { id: 4, plate: 'LUXE-TRK-1', owner: 'Riverside Grand Hotel', status: 'Active', discount: 10 },
+  { id: 5, plate: 'CITY-900-PD', owner: 'Public Safety Dept', status: 'Active', discount: 15 },
+  { id: 6, plate: 'EXEC-7700', owner: 'Governor Office', status: 'Active', discount: 20 },
+  { id: 7, plate: 'MED-FLEET-3', owner: 'City Hospital Network', status: 'Active', discount: 5 },
+  { id: 8, plate: 'DIPLO-44', owner: 'Foreign Affairs Bureau', status: 'Active', discount: 18 },
+  { id: 9, plate: 'OLD-CORP-12', owner: 'Harrington & Sons LLC', status: 'Expired', discount: 0 },
   { id: 10, plate: 'VNR-PRESS-1', owner: 'City Press Pool', status: 'Active' },
-  { id: 11, plate: 'SVC-PLT-09', owner: 'Metro Cleaning Services', status: 'Expired',discount:0},
-  { id: 12, plate: 'FIRE-001', owner: 'Fire Dept HQ', status: 'Active',discount:0},
+  { id: 11, plate: 'SVC-PLT-09', owner: 'Metro Cleaning Services', status: 'Expired', discount: 0 },
+  { id: 12, plate: 'FIRE-001', owner: 'Fire Dept HQ', status: 'Active', discount: 0 },
 ])
 
 const IconEdit = () => h('svg', { xmlns: 'http://www.w3.org/2000/svg', width: 15, height: 15, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, [
@@ -196,7 +197,10 @@ const perPage = 5
 const openMenuId = ref(null)
 const modalOpen = ref(false)
 const editing = ref(null)
-
+const deleteId = ref(null);
+const isLoading = ref(false);
+const showSuccess = ref(false);
+const msg = ref(null)
 const form = ref({ plate: '', owner: '', expDate: '', status: 'Active', notes: '' })
 
 // ── Computed ──────────────────────────────────────────────────────────────────
@@ -226,12 +230,26 @@ const rangeStart = computed(() => filteredRows.value.length === 0 ? 0 : (current
 const rangeEnd = computed(() => Math.min(currentPage.value * perPage, filteredRows.value.length))
 
 // ── Methods ───────────────────────────────────────────────────────────────────
-const createVip = () =>{
-  router.push({name:'vip-plates.create'})
+const createVip = () => {
+  router.push({ name: 'vip-plates.create' })
 }
 
-const editPlate = (id) =>{
-  router.push({name:'vip-plates.edit',params:{id}})
+const editPlate = (id) => {
+  router.push({ name: 'vip-plates.edit', params: { id } })
+}
+
+const comfirmDelete = async () => {
+  const res = await useVipPlates.deleteVipPlate(deleteId.value);
+  console.log('api response : ',res);
+  msg.value = res.msg;
+  isLoading.value = true
+  showSuccess.value = true
+  await useVipPlates.getAllVipPlates();
+  setTimeout(() => {
+    isLoading.value = false
+    deleteVipModal.value = false;
+    showSuccess.value = false
+  }, 2000)
 }
 function toggleMenu(id) { openMenuId.value = openMenuId.value === id ? null : id }
 function closeMenu() { openMenuId.value = null }
@@ -287,7 +305,13 @@ const vClickOutside = {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 .page {
   font-family: 'Sora', sans-serif;
@@ -305,17 +329,20 @@ const vClickOutside = {
   margin-bottom: 28px;
   gap: 12px;
 }
+
 .page-title {
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.6px;
   color: #0d1117;
 }
+
 .page-subtitle {
   font-size: 13.5px;
   color: #6b7280;
   margin-top: 5px;
 }
+
 .btn-register {
   display: flex;
   align-items: center;
@@ -332,7 +359,10 @@ const vClickOutside = {
   white-space: nowrap;
   transition: background 0.15s;
 }
-.btn-register:hover { background: #1e2530; }
+
+.btn-register:hover {
+  background: #1e2530;
+}
 
 /* Stats */
 .stats-row {
@@ -341,12 +371,14 @@ const vClickOutside = {
   gap: 18px;
   margin-bottom: 28px;
 }
+
 .stat-card {
   background: #fff;
   border-radius: 14px;
   padding: 22px 24px;
   border: 1px solid #e8eaf0;
 }
+
 .stat-label {
   font-size: 10.5px;
   font-weight: 600;
@@ -355,6 +387,7 @@ const vClickOutside = {
   text-transform: uppercase;
   margin-bottom: 10px;
 }
+
 .stat-value {
   font-size: 32px;
   font-weight: 700;
@@ -362,13 +395,17 @@ const vClickOutside = {
   color: #0d1117;
   line-height: 1;
 }
-.stat-value--blue { color: #2563eb; }
+
+.stat-value--blue {
+  color: #2563eb;
+}
 
 /* Avatars */
 .avatars {
   display: flex;
   margin-top: 6px;
 }
+
 .avatar {
   width: 34px;
   height: 34px;
@@ -377,7 +414,11 @@ const vClickOutside = {
   border: 2px solid #fff;
   margin-left: -8px;
 }
-.avatar:first-child { margin-left: 0; }
+
+.avatar:first-child {
+  margin-left: 0;
+}
+
 .avatar--count {
   background: #4b5563;
   color: #fff;
@@ -406,10 +447,12 @@ const vClickOutside = {
   padding: 18px 24px;
   border-bottom: 1px solid #f3f4f6;
 }
+
 .search-wrap {
   position: relative;
   width: 340px;
 }
+
 .search-icon {
   position: absolute;
   left: 12px;
@@ -418,6 +461,7 @@ const vClickOutside = {
   color: #9ca3af;
   pointer-events: none;
 }
+
 .search-input {
   width: 100%;
   padding: 9px 12px 9px 36px;
@@ -430,8 +474,18 @@ const vClickOutside = {
   transition: border-color 0.15s;
   background: #fafafa;
 }
-.search-input:focus { border-color: #2563eb; background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
-.toolbar-right { display: flex; gap: 8px; }
+
+.search-input:focus {
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 8px;
+}
+
 .btn-tool {
   display: flex;
   align-items: center;
@@ -447,12 +501,17 @@ const vClickOutside = {
   cursor: pointer;
   transition: background 0.15s;
 }
-.btn-tool:hover { background: #f9fafb; }
+
+.btn-tool:hover {
+  background: #f9fafb;
+}
+
 /* Row Actions */
 .row-actions {
   display: flex;
   gap: 6px;
 }
+
 .action-btn {
   width: 30px;
   height: 30px;
@@ -490,6 +549,7 @@ const vClickOutside = {
   color: #374151;
   font-weight: 500;
 }
+
 .filter-select {
   padding: 6px 10px;
   border: 1px solid #e5e7eb;
@@ -500,6 +560,7 @@ const vClickOutside = {
   outline: none;
   cursor: pointer;
 }
+
 .btn-clear {
   padding: 5px 12px;
   background: none;
@@ -510,13 +571,17 @@ const vClickOutside = {
   color: #6b7280;
   cursor: pointer;
 }
-.btn-clear:hover { background: #f3f4f6; }
+
+.btn-clear:hover {
+  background: #f3f4f6;
+}
 
 /* Table */
 .data-table {
   width: 100%;
   border-collapse: collapse;
 }
+
 .data-table thead th {
   padding: 12px 24px;
   font-size: 11.5px;
@@ -527,6 +592,7 @@ const vClickOutside = {
   background: #fafafa;
   border-bottom: 1px solid #f3f4f6;
 }
+
 .data-table td {
   padding: 18px 24px;
   font-size: 13.5px;
@@ -534,8 +600,14 @@ const vClickOutside = {
   border-bottom: 1px solid #f9fafb;
   vertical-align: middle;
 }
-.data-row:last-child td { border-bottom: none; }
-.data-row:hover td { background: #f9fbff; }
+
+.data-row:last-child td {
+  border-bottom: none;
+}
+
+.data-row:hover td {
+  background: #f9fbff;
+}
 
 .plate-badge {
   display: inline-block;
@@ -550,37 +622,84 @@ const vClickOutside = {
   letter-spacing: 0.5px;
   white-space: nowrap;
 }
-.owner-name { font-weight: 500; color: #1a202c; }
-.exp-date { color: #6b7280; font-size: 13px; }
-.notes { color: #9ca3af; font-size: 12.5px; max-width: 280px; }
+
+.owner-name {
+  font-weight: 500;
+  color: #1a202c;
+}
+
+.exp-date {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.notes {
+  color: #9ca3af;
+  font-size: 12.5px;
+  max-width: 280px;
+}
 
 /* Status */
-td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
+td:has(.status-dot) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .status-dot {
-  width: 7px; height: 7px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
   display: inline-block;
 }
-.dot-active { background: #22c55e; }
-.dot-expired { background: #f87171; }
-.status-text { font-size: 13px; font-weight: 600; }
-.text-active { color: #16a34a; }
-.text-expired { color: #dc2626; }
+
+.dot-active {
+  background: #22c55e;
+}
+
+.dot-expired {
+  background: #f87171;
+}
+
+.status-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.text-active {
+  color: #16a34a;
+}
+
+.text-expired {
+  color: #dc2626;
+}
 
 /* Action Menu */
-.action-menu-wrap { position: relative; display: inline-block; }
+.action-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
 .dots-btn {
-  width: 30px; height: 30px;
+  width: 30px;
+  height: 30px;
   background: none;
   border: none;
   color: #9ca3af;
   cursor: pointer;
   border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.15s, color 0.15s;
 }
-.dots-btn:hover { background: #f3f4f6; color: #374151; }
+
+.dots-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
 .dropdown-menu {
   position: absolute;
   right: 0;
@@ -588,11 +707,12 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
   background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 9px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   min-width: 110px;
   z-index: 50;
   overflow: hidden;
 }
+
 .dropdown-menu button {
   display: block;
   width: 100%;
@@ -606,9 +726,18 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
   cursor: pointer;
   transition: background 0.12s;
 }
-.dropdown-menu button:hover { background: #f9fafb; }
-.dropdown-menu button.danger { color: #dc2626; }
-.dropdown-menu button.danger:hover { background: #fef2f2; }
+
+.dropdown-menu button:hover {
+  background: #f9fafb;
+}
+
+.dropdown-menu button.danger {
+  color: #dc2626;
+}
+
+.dropdown-menu button.danger:hover {
+  background: #fef2f2;
+}
 
 /* Empty */
 .empty-state {
@@ -626,10 +755,21 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
   padding: 14px 24px;
   border-top: 1px solid #f3f4f6;
 }
-.entry-count { font-size: 13px; color: #9ca3af; }
-.pagination { display: flex; gap: 4px; align-items: center; }
+
+.entry-count {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.pagination {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
 .pg-btn {
-  min-width: 32px; height: 32px;
+  min-width: 32px;
+  height: 32px;
   padding: 0 6px;
   border: 1px solid #e5e7eb;
   background: #fff;
@@ -638,11 +778,62 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
   font-size: 13.5px;
   color: #374151;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.12s;
 }
-.pg-btn:hover:not(:disabled) { background: #f3f4f6; }
-.pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Toast */
+.toast-success {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111827;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 13.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    z-index: 100;
+}
+
+.toast-success svg {
+    color: #10b981;
+}
+
+.toast-enter-active {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toast-leave-active {
+    transition: all 0.2s ease;
+}
+
+.toast-enter-from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
+}
+
+.toast-leave-to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
+}
+.pg-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.pg-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .pg-btn--active {
   background: #2563eb;
   color: #fff;
@@ -654,20 +845,22 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(13,17,23,0.5);
+  background: rgba(13, 17, 23, 0.5);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
 }
+
 .modal {
   background: #fff;
   border-radius: 16px;
   width: 460px;
   max-width: 95vw;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.16);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.16);
 }
+
 .modal-head {
   display: flex;
   justify-content: space-between;
@@ -675,35 +868,51 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
   padding: 22px 24px 16px;
   border-bottom: 1px solid #f3f4f6;
 }
+
 .modal-head h3 {
   font-size: 16px;
   font-weight: 700;
   color: #0d1117;
 }
+
 .modal-x {
-  width: 28px; height: 28px;
+  width: 28px;
+  height: 28px;
   background: #f3f4f6;
   border: none;
   border-radius: 6px;
   font-size: 18px;
   cursor: pointer;
   color: #6b7280;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.12s;
 }
-.modal-x:hover { background: #e5e7eb; }
+
+.modal-x:hover {
+  background: #e5e7eb;
+}
+
 .modal-body {
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-.field { display: flex; flex-direction: column; gap: 5px; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 .field label {
   font-size: 12.5px;
   font-weight: 600;
   color: #374151;
 }
+
 .finput {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -714,7 +923,12 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
   outline: none;
   transition: border-color 0.15s;
 }
-.finput:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+
+.finput:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
 .modal-foot {
   display: flex;
   justify-content: flex-end;
@@ -722,6 +936,7 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
   padding: 16px 24px 22px;
   border-top: 1px solid #f3f4f6;
 }
+
 .btn-cancel {
   padding: 9px 18px;
   border: 1px solid #e5e7eb;
@@ -733,7 +948,11 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
   color: #374151;
   cursor: pointer;
 }
-.btn-cancel:hover { background: #f9fafb; }
+
+.btn-cancel:hover {
+  background: #f9fafb;
+}
+
 .btn-save {
   padding: 9px 20px;
   border: none;
@@ -746,21 +965,61 @@ td:has(.status-dot) { display: flex; align-items: center; gap: 6px; }
   cursor: pointer;
   transition: background 0.15s;
 }
-.btn-save:hover { background: #1e2530; }
+
+.btn-save:hover {
+  background: #1e2530;
+}
 
 /* Transitions */
-.modal-enter-active, .modal-leave-active { transition: opacity 0.2s; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s;
+}
 
-.slide-enter-active, .slide-leave-active { transition: max-height 0.2s ease, opacity 0.2s; overflow: hidden; }
-.slide-enter-from, .slide-leave-to { max-height: 0; opacity: 0; }
-.slide-enter-to, .slide-leave-from { max-height: 60px; opacity: 1; }
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
 
-@media (max-width: 1024px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+.slide-enter-active,
+.slide-leave-active {
+  transition: max-height 0.2s ease, opacity 0.2s;
+  overflow: hidden;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.slide-enter-to,
+.slide-leave-from {
+  max-height: 60px;
+  opacity: 1;
+}
+
+@media (max-width: 1024px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
-  .page { padding: 16px; }
-  .stats-row { grid-template-columns: 1fr 1fr; }
-  .search-wrap { width: 100%; }
-  .toolbar { flex-wrap: wrap; }
+  .page {
+    padding: 16px;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .search-wrap {
+    width: 100%;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+  }
 }
 </style>

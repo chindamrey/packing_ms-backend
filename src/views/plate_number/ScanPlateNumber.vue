@@ -5,7 +5,7 @@
       <div class="header-left">
         <div class="logo">
 
-          <span class="logo-text">ParkControl Pro</span>
+          <span class="logo-text">Parking System</span>
         </div>
         <div class="divider-v"></div>
 
@@ -25,8 +25,10 @@
           </div>
         </div>
       </div>
-      <base-button v-if="isRunning" label="Emergency Stop" variant="danger" class="py-2" @click="emergencyStop" :disabled="!isRunning" />
-      <base-button v-else label="Start" variant="primary" class="py-2" @click="startEntry" :disabled="isRunning" />
+      <base-button v-if="isRunning" label="" variant="danger" class="py-2" @click="emergencyStop"
+        :disabled="!isRunning">Emergency Stop</base-button>
+      <base-button v-else label="" variant="primary" class="py-2" @click="startEntry"
+        :disabled="isRunning">Start</base-button>
     </header>
 
     <!-- Main content -->
@@ -46,7 +48,7 @@
 
             <!-- Simulated camera image -->
             <div class="camera-bg">
-              <video v-if="isEntry" ref="video" autoplay width="500"></video>
+              <video v-if="isEntry" ref="video" autoplay width="840"></video>
               <div v-else class="car-silhouette">
                 <div class="plate-detection">
                   <div class="detection-box">
@@ -95,7 +97,7 @@
             </span>
           </div>
           <h2 class="gate-status-title">{{ exitInfo.message }}</h2>
-          <p class="gate-status-sub" v-if="isCounting" >Gate will close in {{ countdown }}s</p>
+          <p class="gate-status-sub" v-if="isCounting">Gate will close in {{ countdown }}s</p>
         </div>
 
         <!-- Session Summary -->
@@ -159,7 +161,8 @@
               </div>
             </div>
           </div>
-          <base-button class="w-100" label="Print Receipt" variant="primary" @click="printReceipt" />
+          <base-button class="w-100" label="Print Receipt" variant="primary" @click="printReceipt">Print
+            Receipt</base-button>
         </div>
 
 
@@ -167,14 +170,7 @@
     </main>
 
 
-    <!-- Footer -->
-    <footer class="footer">
-      <span>© 2023 ParkControl Systems. All rights reserved.</span>
-      <div class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-      </div>
-    </footer>
+
   </div>
 </template>
 
@@ -204,11 +200,12 @@ let isAvailableSlot = ref(true);
 let gateStatus = ref(false);
 const receiptRef = ref(null);
 
-const RESTART_DELAY_SECONDS = 30
+const RESTART_DELAY_SECONDS = 60
 const countdown = ref(RESTART_DELAY_SECONDS)
 const isCounting = ref(false)
 let timer = null
 let restartTimer = null
+
 // Capacity state
 let capacity = reactive({
   current: 142,
@@ -239,6 +236,7 @@ const clearFrame = () => {
 }
 
 onMounted(async () => {
+
   startEntry();
   getCarCapacity();
 });
@@ -254,7 +252,7 @@ const getCarCapacity = async () => {
   try {
     const res = await api.get('/plates/all-entry');
     const data = res.data.data;
-    console.log("Car capacity:", data);
+    // console.log("Car capacity:", data);
     currentCar.value = data.total;
     capacity.max = data.slot_limit.total_slot;
 
@@ -312,14 +310,21 @@ const startCamera = async () => {
 
   isRunning.value = true;
 
+  const devices = await navigator.mediaDevices.enumerateDevices()
+  const videoDevices = devices.filter(d => d.kind === 'videoinput')
+  console.log('a device video : ',devices);
+  
+  const selectedDeviceId = videoDevices[1].deviceId
+  console.log('available device  : ',videoDevices) // see all cameras + their deviceIds
   stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  console.log('stream ', stream);
+
   video.value.srcObject = stream;
 
   socket = new WebSocket("ws://localhost:8765");
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    console.log("Received from server:", data);
     if (data.data?.result == false) {
       gateInfo.value = false;
       exitInfo.message = data.data?.msg;
@@ -344,11 +349,11 @@ const startCamera = async () => {
       exitInfo.duration = data.data.data?.duration?.hours + "h " + data.data.data?.duration?.minutes + "m " + data.data.data?.duration?.seconds + "s";
       exitInfo.billableHours = data.data.data?.billableHours;
       exitInfo.totalFee = data.data.data?.finalFee || 'null';
-      
+
     }
 
   };
-  interval = setInterval(sendFrame, 500);
+  interval = setInterval(sendFrame, 600);
 };
 
 
@@ -417,14 +422,14 @@ const sendFrame = () => {
   canvas.value = document.createElement("canvas");
   const ctx = canvas.value.getContext("2d");
 
-  canvas.value.width = 300;
-  canvas.value.height = 220;
+  canvas.value.width = 840;
+  canvas.value.height = 680;
 
-  ctx.drawImage(video.value, 0, 0, 320, 240);
+  ctx.drawImage(video.value, 0, 0, 840, 680);
 
   socket.send(JSON.stringify({
     mode,
-    image: canvas.value.toDataURL("image/jpeg")
+    image: canvas.value.toDataURL("image/jpeg", 0.8)
   }));
 };
 
@@ -706,7 +711,7 @@ const startCountdown = () => {
   overflow: hidden;
   background: #0f172a;
   position: relative;
-  min-height: 420px;
+  min-height: 600px;
 }
 
 .feed-overlay {
@@ -735,6 +740,7 @@ const startCountdown = () => {
   border-radius: 6px;
   letter-spacing: 0.05em;
 }
+
 .badge-stop {
   display: flex;
   align-items: center;

@@ -23,8 +23,8 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="form-title">Edit VIP Plate</h1>
-                        <p class="form-subtitle">Edit VIP Plate info details below</p>
+                        <h1 class="form-title">Edit Price Rule</h1>
+                        <p class="form-subtitle">Edit price rule info details below</p>
                     </div>
                 </div>
             </div>
@@ -35,122 +35,99 @@
             <!-- Form Body -->
             <div class="form-body">
 
-                <!-- Name Field -->
+                <!-- From Hour Field -->
                 <div class="field-group"
-                    :class="{ focused: plateFocused, filled: form.plate_number, error: errors.plate_number }">
+                    :class="{ focused: fromHourFocused, filled: form.from_hour, error: errors.from_hour }">
                     <label class="field-label">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
-                            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M12 7v5l3 3"></path>
+                            <path d="M4 12h3"></path>
                         </svg>
-                        Plate Number <span class="required-star">*</span>
+                        From Hour <span class="required-star">*</span>
                     </label>
                     <div class="input-wrapper">
-                        <input v-model="form.plate_number" type="text" class="field-input"
-                            placeholder="Enter plate number ..." @focus="plateFocused = true"
-                            @blur="plateFocused = false; validatePlate()" />
+                        <input v-model.number="form.from_hour" type="number" class="field-input"
+                            placeholder="Enter From Hour ..." @focus="fromHourFocused = true"
+                            @blur="fromHourFocused = false; validateFromHour()" />
                         <div class="input-suffix">
-                            <span v-if="form.plate_number" class="char-count">{{ form.plate_number.length }}</span>
-                            <svg v-if="form.plate_number && !errors.plate_number" class="valid-icon" width="16"
-                                height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                        </div>
-                    </div>
-                    <p v-if="errors.plate_number" class="error-msg">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                        </svg>
-                        {{ errors.plate_number }}
-                    </p>
-                </div>
-
-                <!-- Owner Name Field  -->
-
-                <div class="field-group"
-                    :class="{ focused: nameFocused, filled: form.owner_name, error: errors.owner_name }">
-                    <label class="field-label">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                        </svg>
-                        Owner Name <span class="required-star">*</span>
-                    </label>
-                    <div class="input-wrapper">
-                        <input v-model="form.owner_name" type="text" class="field-input"
-                            placeholder="Enter plate number ..." @focus="nameFocused = true"
-                            @blur="nameFocused = false; validateName()" />
-                        <div class="input-suffix">
-                            <span v-if="form.owner_name" class="char-count">{{ form.owner_name.length }}</span>
-                            <svg v-if="form.owner_name && !errors.owner_name" class="valid-icon" width="16" height="16"
+                            <span v-if="form.from_hour" class="char-count">{{ form.from_hour.length }}</span>
+                            <svg v-if="form.from_hour && !errors.from_hour" class="valid-icon" width="16" height="16"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                                 stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="20 6 9 17 4 12" />
                             </svg>
                         </div>
                     </div>
-                    <p v-if="errors.owner_name" class="error-msg">
+                    <p v-if="errors.from_hour" class="error-msg">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                             <path
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                         </svg>
-                        {{ errors.owner_name }}
+                        {{ errors.from_hour }}
                     </p>
                 </div>
-                <!------------ Status  ----------->
-                <div class="field-group">
+
+                <!-- To Hour Field  -->
+
+                <div class="field-group"
+                    :class="{ focused: toHourFocused, filled: form.to_hour, error: errors.to_hour }">
                     <label class="field-label">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2l3 6 6 .9-4.5 4.4 1 6.2L12 17l-5.5 2.5 1-6.2L3 8.9 9 8z" />
+
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M12 7v5l3 3"></path>
+                            <path d="M17 12h3"></path>
                         </svg>
-                        Status <span class="required-star">*</span>
+                        To Hour <span class="required-star">*</span>
                     </label>
-
-                    <div class="input-wrapper radio-wrapper">
-                        <label class="radio-option">
-                            <input type="radio" value="1" v-model="form.is_active" @change="validateStatus" />
-                            <span class="radio-label">Active</span>
-                        </label>
-
-                        <label class="radio-option">
-                            <input type="radio" value="0" v-model="form.is_active" @change="validateStatus" />
-                            <span class="radio-label">Inactive</span>
-                        </label>
+                    <div class="input-wrapper">
+                        <input v-model.number="form.to_hour" type="number" class="field-input"
+                            placeholder="Enter To Hour ..." @focus="toHourFocused = true"
+                            @blur="toHourFocused = false; validateToHour()" />
+                        <div class="input-suffix">
+                            <span v-if="form.to_hour" class="char-count">{{ form.to_hour.length }}</span>
+                            <svg v-if="form.to_hour && !errors.to_hour" class="valid-icon" width="16" height="16"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
                     </div>
-
-                    <p v-if="errors.is_active" class="error-msg">
-                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <p v-if="errors.to_hour" class="error-msg">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                             <path
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                         </svg>
-                        {{ errors.is_active }}
+                        {{ errors.to_hour }}
                     </p>
                 </div>
-                <!-- Discount Percentage Field -->
+
+                <!-- Price Per Hour Field -->
                 <div class="field-group"
-                    :class="{ focused: numberFocused, filled: form.discount_percentage !== '', error: errors.discount_percentage }">
+                    :class="{ focused: pricePerHourFocused, filled: form.price_per_hour !== '', error: errors.price_per_hour }">
                     <label class="field-label">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2l3 6 6 .9-4.5 4.4 1 6.2L12 17l-5.5 2.5 1-6.2L3 8.9 9 8z" />
+
+                            <path d="M20 10l-8 8-8-8V4h6l10 10z"></path>
+                            <circle cx="7" cy="7" r="1.5"></circle>
                         </svg>
-                        Discount% <span class="required-star">*</span>
+                        Price/hour <span class="required-star">*</span>
                     </label>
                     <div class="input-wrapper number-wrapper">
-                        <button class="stepper-btn" @click="decrement" :disabled="form.discount_percentage <= 0">
+                        <button class="stepper-btn" @click="decrement" :disabled="form.price_per_hour <= 0">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round">
                                 <line x1="5" y1="12" x2="19" y2="12" />
                             </svg>
                         </button>
-                        <input v-model.number="form.discount_percentage" type="number" class="field-input number-input"
+                        <input v-model.number="form.price_per_hour" type="number" class="field-input number-input"
                             placeholder="0" min="0" @focus="numberFocused = true"
-                            @blur="numberFocused = false; validateNumber()" />
+                            @blur="pricePerHourFocused = false; validatePricePerHour()" />
                         <button class="stepper-btn" @click="increment">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="3" stroke-linecap="round">
@@ -159,12 +136,46 @@
                             </svg>
                         </button>
                     </div>
-                    <p v-if="errors.discount_percentage" class="error-msg">
+                    <p v-if="errors.price_per_hour" class="error-msg">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                             <path
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                         </svg>
-                        {{ errors.discount_percentage }}
+                        {{ errors.price_per_hour }}
+                    </p>
+                </div>
+
+                <!-- Vehicle Type Field -->
+                <div class="field-group"
+                    :class="{ focused: vehicleTypeFocused, filled: form.vehicle_type !== '', error: errors.vehicle_type }">
+                    <label class="field-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="3" width="15" height="13" rx="2" />
+                            <path d="M16 8h4l3 5v3h-7V8z" />
+                            <circle cx="5.5" cy="18.5" r="2.5" />
+                            <circle cx="18.5" cy="18.5" r="2.5" />
+                        </svg>
+                        Vehicle Type <span class="required-star">*</span>
+                    </label>
+                    
+                    <div class="radio-group" @focusin="vehicleTypeFocused = true"
+                        @focusout="vehicleTypeFocused = false">
+                        <label v-for="option in useVehicleTypes.vehicleType" :key="option.id" class="radio-option"
+                            :class="{ selected: form.vehicle_type === option.id }">
+                            <input type="radio" :value="option.id" v-model="form.vehicle_type"
+                                @change="validateVehicleType" class="radio-input" />
+                            <span class="radio-custom"></span>
+                            <span class="radio-label">{{ option.name }}</span>
+                        </label>
+                    </div>
+
+                    <p v-if="errors.vehicle_type" class="error-msg">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                        </svg>
+                        {{ errors.vehicle_type }}
                     </p>
                 </div>
 
@@ -208,7 +219,7 @@
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                         <polyline points="22 4 12 14.01 9 11.01" />
                     </svg>
-                   {{msg}}
+                    {{ msg }}
                 </div>
             </Transition>
         </div>
@@ -220,123 +231,112 @@ import { ref, reactive, onMounted } from 'vue';
 import BaseButton from "@/components/base/BaseButton.vue"
 import { useRequiredValidator } from '@/composables/useRequiredValidator';
 import { useRouter, useRoute } from 'vue-router';
-import { useVipPlatesStore } from '@/stores/vip_plates';
+import { usePriceRulesStore } from '@/stores/price_rules';
+import { useVehicleTypeStore } from '@/stores/vehicle_types';
 
 
-const useVipPlate = useVipPlatesStore()
+const usePriceRules = usePriceRulesStore()
+const useVehicleTypes = useVehicleTypeStore()
 const router = useRouter();
 const route = useRoute();
 const { errors, validateField } = useRequiredValidator()
 
 onMounted(async () => {
-    await useVipPlate.getVipPlateById(vipId)
-    const data = useVipPlate.vipPlates;
-    form.plate_number = data.plate_number;
-    form.discount_percentage = data.discount_percentage;
-    form.owner_name = data.owner_name;
-    form.is_active = data.is_active === null ? 0 : data.is_active;
+    priceId.value = route.params.id;
+    await useVehicleTypes.getAllVehicleTypes();
+    await usePriceRules.getPriceRuleById(priceId.value);
+    // console.log(await usePriceRules.priceRules.data.vehicle_type_number);
+    const data = await usePriceRules.priceRules.data;
+    form.from_hour = data.from_hour;
+    form.to_hour = data.to_hour;
+    form.price_per_hour = data.price_per_hour;
+    form.vehicle_type = usePriceRules.priceRules.data.vehicle_type_number;
+    
+
 })
-// const discount_percentageFocused = ref(false)
-
-// const form = reactive({
-//   discount_percentage: '', // 'active' | 'inactive' | ''
-// })
-
-// const errors = reactive({
-//   discount_percentage: '',
-// })
-
-function validateDiscount() {
-    if (!form.discount_percentage) {
-        errors.discount_percentage = 'Please select a status.'
-    } else {
-        errors.discount_percentage = ''
-    }
-}
-
 
 const form = reactive({
-    plate_number: '',
-    owner_name: '',
-    discount_percentage: 0,
-    discount_percentage: 0
+    from_hour: 0,
+    to_hour: 0,
+    price_per_hour: 0,
+    vehicle_type: ''
 })
 
 // const errors = reactive({ name: '', numberInstand: '' })
-const nameFocused = ref(false)
-const numberFocused = ref(false)
+const toHourFocused = ref(false)
+const pricePerHourFocused = ref(false)
+const vehicleTypeFocused = ref(false)
 const isLoading = ref(false)
 const showSuccess = ref(false)
-const plateFocused = ref(false);
-const vipId = route.params.id;
-const msg = ref('')
+const fromHourFocused = ref(false);
+const priceId = ref();
+const msg = ref();
 
 
-function validatePlate() {
-    errors.plate_number = form.plate_number.trim() ? '' : 'Plate number is required.'
-}
-const validateStatus = () => {
-    if (form.is_active === null || form.is_active === undefined || form.is_active === '') {
-        errors.is_active = 'Status is required.';
-        return;
+const validateFromHour = () => {
+    if (form.from_hour === '' || form.from_hour === null) {
+        errors.from_hour = 'From hour is required.'
+    } else if (form.from_hour < 0) {
+        errors.from_hour = 'Must be a positive number.'
     } else {
-        errors.is_active = ''
+        errors.from_hour = ''
     }
 }
-function validateName() {
-    console.log(!errors.owner_name);
-    
-    if (!form.owner_name || form.owner_name.trim() === "") {
-        errors.owner_name = 'Owner name is required.';
-        return;
-    }
-    else{
-        errors.owner_name = '';
-    }
-    // errors.owner_name = form.owner_name.trim() ? '' : 
-}
-function validateNumber() {
-    if (form.discount_percentage === '' || form.discount_percentage === null) {
-        errors.discount_percentage = 'Discount is required.'
-    } else if (form.numberInstand < 0) {
-        errors.discount_percentage = 'Must be a positive number.'
+const validateToHour = () => {
+    if (form.to_hour === '' || form.to_hour === null) {
+        errors.to_hour = 'To hour is required.'
+    } else if (form.to_hour < 0 || form.from_hour > form.to_hour) {
+        errors.to_hour = 'Must be a positive number or Greater than from hour'
     } else {
-        errors.discount_percentage = ''
+        errors.to_hour = ''
     }
 }
-function increment() { form.discount_percentage++ }
-function decrement() { if (form.discount_percentage > 0) form.discount_percentage-- }
+const validatePricePerHour = () => {
+    if (form.price_per_hour === '' || form.price_per_hour === null) {
+        errors.price_per_hour = 'Price per hour is required.'
+    } else if (form.price_per_hour < 0) {
+        errors.price_per_hour = 'Must be a positive number.'
+    } else {
+        errors.price_per_hour = ''
+    }
+}
+const validateVehicleType = () => {
+    errors.vehicle_type = form.vehicle_type === ''
+        ? 'Please select a vehicle type.'
+        : ''
+}
+const increment = () => { form.price_per_hour++ }
+const decrement = () => { if (form.price_per_hour > 0) form.price_per_hour-- }
 
-function handleReset() {
-    form.name = ''
-    form.numberInstand = 0
-    errors.name = ''
-    errors.numberInstand = ''
+const handleReset = () => {
+    form.from_hour = ''
+    form.to_hour = 0
+    form.price_per_hour = 0
+    errors.from_hour = ''
+    errors.to_hour = 0
+    errors.price_per_hour = 0
 }
 
 const handleSubmit = async () => {
 
-    // console.log('owner name : ', form.owner_name);
-    validateStatus()
-    validateName()
-    validatePlate()
-    validateNumber()
-
-    if (errors.owner_name || errors.discount_percentage || errors.plate_number || errors.is_active) return;
-    const res = await useVipPlate.editVipPlate(vipId, form)
+    validateFromHour();
+    validateToHour();
+    validatePricePerHour();
+    if (errors.from_hour || errors.to_hour || errors.price_per_hour) return
+    const res = await usePriceRules.editPriceRuleById(priceId.value,form)
     msg.value = res.msg;
     isLoading.value = true
 
     showSuccess.value = true
     setTimeout(() => {
         isLoading.value = false
-        router.push({ name: 'vip-plates.index' })
+        router.push({ name: 'price-rules.index' })
         showSuccess.value = false
     }, 2000)
 }
 
 const handleBack = () => {
-    router.push({ name: 'vip-plates.index' })
+    router.push({ name: 'price-rules.index' })
 }
 </script>
 
@@ -478,31 +478,6 @@ const handleBack = () => {
     line-height: 1;
 }
 
-.radio-wrapper {
-    display: flex;
-    gap: 1.5rem;
-    padding: 0.5rem 0.5rem;
-}
-
-.radio-option {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    cursor: pointer;
-}
-
-.radio-option input[type="radio"] {
-    accent-color: var(--primary, #6366f1);
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-
-.radio-label {
-    font-size: 0.9rem;
-    color: var(--text, #374151);
-}
-
 .input-wrapper {
     display: flex;
     align-items: center;
@@ -541,6 +516,68 @@ const handleBack = () => {
 .field-input::placeholder {
     color: #c4c9d4;
     font-weight: 400;
+}
+
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  user-select: none;
+}
+
+.radio-option:hover {
+  border-color: #94a3b8;
+}
+
+.radio-option.selected {
+  border-color: #6366f1;
+  background: #eef2ff;
+}
+
+/* Hide native radio, use custom dot */
+.radio-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio-custom {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+
+.radio-option.selected .radio-custom {
+  border-color: #6366f1;
+  background: #6366f1;
+  box-shadow: inset 0 0 0 3px #fff;
+}
+
+.radio-label {
+  font-size: 13px;
+  color: #374151;
+}
+
+.radio-option.selected .radio-label {
+  color: #4f46e5;
+  font-weight: 500;
 }
 
 /* Number field custom stepper */
