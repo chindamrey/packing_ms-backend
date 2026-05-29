@@ -1,2 +1,20 @@
+# dependencies
 node_modules/
+
+# build
+dist/
+
+# env files
 .env
+.env.*
+!.env.example
+
+# logs
+*.log
+
+# vscode
+.vscode/
+
+# mac/windows
+.DS_Store
+Thumbs.db
