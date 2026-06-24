@@ -232,7 +232,7 @@ onMounted(async () => {
     await useVipPlate.getVipPlateById(vipId)
     const data = useVipPlate.vipPlates;
     form.plate_number = data.plate_number;
-    form.discount_percentage = data.discount_percentage;
+    form.discount_percentage = data.discount_percentage === null ? 0 : data.discount_percentage;
     form.owner_name = data.owner_name;
     form.is_active = data.is_active === null ? 0 : data.is_active;
 })
@@ -259,7 +259,6 @@ const form = reactive({
     plate_number: '',
     owner_name: '',
     discount_percentage: 0,
-    discount_percentage: 0
 })
 
 // const errors = reactive({ name: '', numberInstand: '' })

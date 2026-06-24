@@ -1,5 +1,6 @@
 // src/api/api.js
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 import { useAuthStore } from "@/stores/auth";
 
 const api = axios.create({
@@ -12,13 +13,24 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const authStore = useAuthStore();
-  console.log('token expre ? ',authStore.isAuthenticated.value);
-  if(!authStore.isAuthenticated.value) {
-    // authStore.clearAuth();
-    // return;
-  }
-  if (authStore.token) {
-    config.headers.Authorization = `Bearer ${authStore.token.value}`;
+  
+  if (authStore.token.value) {
+    try {
+      const decoded = jwtDecode(authStore.token.value);
+      if (decoded.exp * 1000 < Date.now()) {
+        authStore.clearAuth();
+
+        // Optional: redirect to login
+        window.location.href = "/login";
+
+        return Promise.reject(new Error("Token expired"));
+      }
+
+      config.headers.Authorization = `Bearer ${authStore.token.value}`;
+    } catch (error) {
+      authStore.clearAuth();
+      return Promise.reject(error);
+    }
   }
 
   return config;

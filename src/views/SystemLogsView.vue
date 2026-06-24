@@ -77,46 +77,48 @@
             </Transition>
 
             <!-- Table -->
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Plate Number</th>
-                        <th>Status</th>
-                        <th>Entry Time</th>
-                        <th>Exit Time</th>
-                        <th>Vehicle Type</th>
-                        <th>Total Fee</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="row in usePackingLogs.recentActivities" :key="row.id" class="data-row">
-                        <td><span class="plate-badge">{{ row.plate_number }}</span></td>
-                        <td>
-                            <span class="status-dot" :class="row.status === 'IN' ? 'dot-active' : 'dot-expired'"></span>
-                            <span class="status-text" :class="row.status === 'IN' ? 'text-active' : 'text-expired'">{{
-                                row?.status }}</span>
-                        </td>
-                        <td class="owner-name">{{ formatDate(row?.entry_time) }}</td>
-                        <td class="owner-name">{{ row?.exit_time == null ? 'null' : formatDate(row?.exit_time) }}</td>
-                        <td class="owner-name">{{ row?.vehicle_type == null ? 'null' : row?.vehicle_type }}</td>
-                        <td class="discount">{{ row?.total_fee == null ? 0 : row?.total_fee }} $</td>
-                        <!-- <td>
-                            <div class="row-actions">
-                                <button class="action-btn" title="Edit" @click="editPlate(row.id)">
-                                    <IconEdit />
-                                </button>
-                                <button class="action-btn action-btn-danger" title="Delete"
-                                    @click="deleteVipPlate(row.id)">
-                                    <IconTrash />
-                                </button>
-                            </div>
-                        </td> -->
-                    </tr>
-                    <!-- <tr v-if="paginatedRows.length === 0">
-                        <td colspan="6" class="empty-state">No entries found.</td>
-                    </tr> -->
-                </tbody>
-            </table>
+            <div class="table-scroll-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Plate Number</th>
+                            <th>Status</th>
+                            <th>Entry Time</th>
+                            <th>Exit Time</th>
+                            <th>Vehicle Type</th>
+                            <th>Total Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="row in usePackingLogs.recentActivities" :key="row.id" class="data-row">
+                            <td><span class="plate-badge">{{ row.plate_number }}</span></td>
+                            <td>
+                                <span class="status-dot" :class="row.status === 'IN' ? 'dot-active' : 'dot-expired'"></span>
+                                <span class="status-text" :class="row.status === 'IN' ? 'text-active' : 'text-expired'">{{
+                                    row?.status }}</span>
+                            </td>
+                            <td class="owner-name">{{ formatDate(row?.entry_time) }}</td>
+                            <td class="owner-name">{{ row?.exit_time == null ? 'null' : formatDate(row?.exit_time) }}</td>
+                            <td class="owner-name">{{ row?.vehicle_type == null ? 'null' : row?.vehicle_type }}</td>
+                            <td class="discount">{{ row?.total_fee == null ? 0 : row?.total_fee }} $</td>
+                            <!-- <td>
+                                <div class="row-actions">
+                                    <button class="action-btn" title="Edit" @click="editPlate(row.id)">
+                                        <IconEdit />
+                                    </button>
+                                    <button class="action-btn action-btn-danger" title="Delete"
+                                        @click="deleteVipPlate(row.id)">
+                                        <IconTrash />
+                                    </button>
+                                </div>
+                            </td> -->
+                        </tr>
+                        <!-- <tr v-if="paginatedRows.length === 0">
+                            <td colspan="6" class="empty-state">No entries found.</td>
+                        </tr> -->
+                    </tbody>
+                </table>
+            </div>
 
             <div class="table-footer">
                 <span class="entry-count">
@@ -686,6 +688,30 @@ const vClickOutside = {
 }
 
 /* Table */
+.table-scroll-container {
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+    background: #f9fafb;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
 .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -700,6 +726,9 @@ const vClickOutside = {
     text-align: left;
     background: #fafafa;
     border-bottom: 1px solid #f3f4f6;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .data-table td {

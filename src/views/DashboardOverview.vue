@@ -144,10 +144,24 @@
             <span class="card-title">Occupancy Trends</span>
             <div class="card-sub">{{ trendSubtitle }}</div>
           </div>
-          <div class="trend-tabs">
-            <button v-for="t in trendTabs" :key="t" class="trend-tab"
-              :class="{ 'trend-tab--active': activeTrend === t }" @click="setActiveTrend(t)">{{ t }}</button>
-          </div>
+        </div>
+
+        <div class="chart-filters">
+          <button v-for="period in reportPeriods" :key="period.value" class="report-period"
+            :class="{ 'report-period--active': activeReportPeriod === period.value }"
+            @click="setActiveReportPeriod(period.value)">
+            {{ period.label }}
+          </button>
+        </div>
+        <div v-if="activeReportPeriod === 'custom'" class="custom-report-range custom-report-range--chart">
+          <label class="custom-date-field">
+            <span>From</span>
+            <input v-model="customReportStart" type="date" />
+          </label>
+          <label class="custom-date-field">
+            <span>Until</span>
+            <input v-model="customReportEnd" type="date" />
+          </label>
         </div>
 
         <!-- Bar Chart -->
@@ -163,9 +177,9 @@
               <div v-for="(bar, i) in trendBars" :key="i" class="trend-bar-wrap" @mouseenter="hoveredBar = i"
                 @mouseleave="hoveredBar = null">
                 <Transition name="tooltip">
-                  <div v-if="hoveredBar === i" class="bar-tooltip">{{ bar.pct }}%</div>
+                  <div v-if="hoveredBar === i" class="bar-tooltip">{{ bar.count }} {{ bar.count === 1 ? 'car' : 'cars' }}</div>
                 </Transition>
-                <div class="trend-bar" :class="{ 'trend-bar--active': bar.active }" :style="{ height: bar.pct + '%' }">
+                <div class="trend-bar" :class="{ 'trend-bar--active': bar.active }" :style="{ height: bar.height + '%' }">
                 </div>
               </div>
             </div>
@@ -176,23 +190,6 @@
         </div>
 
         <div class="today-report">
-          <div class="report-periods">
-            <button v-for="period in reportPeriods" :key="period.value" class="report-period"
-              :class="{ 'report-period--active': activeReportPeriod === period.value }"
-              @click="activeReportPeriod = period.value">
-              {{ period.label }}
-            </button>
-          </div>
-          <div v-if="activeReportPeriod === 'custom'" class="custom-report-range">
-            <label class="custom-date-field">
-              <span>From</span>
-              <input v-model="customReportStart" type="date" />
-            </label>
-            <label class="custom-date-field">
-              <span>Until</span>
-              <input v-model="customReportEnd" type="date" />
-            </label>
-          </div>
           <div class="today-report__item">
             <span class="today-report__label">Cars</span>
             <strong class="today-report__value">{{ periodReport.totalCars }}</strong>
@@ -339,8 +336,6 @@ const revenueBars = computed(() => {
 })
 
 // ── Trend Chart ───────────────────────────────────────────────────────────────
-const trendTabs = ['Today', 'This Week', 'This Month']
-const activeTrend = ref('Today')
 const hoveredBar = ref(null)
 const occupancyLogs = ref([])
 const isTrendLoading = ref(false)
@@ -354,8 +349,6 @@ const reportPeriods = [
 const activeReportPeriod = ref('today')
 const customReportStart = ref(dayjs().startOf('month').format('YYYY-MM-DD'))
 const customReportEnd = ref(dayjs().format('YYYY-MM-DD'))
-
-const yLabels = ['100%', '75%', '50%', '25%', '0%']
 
 const getOccupancyPercent = (occupied) => {
   if (!packingLogsStore.slotMax) return 0
@@ -384,46 +377,33 @@ const fetchOccupancyLogs = async () => {
   }
 }
 
-const setActiveTrend = (trend) => {
-  activeTrend.value = trend
+const setActiveReportPeriod = (period) => {
+  activeReportPeriod.value = period
   hoveredBar.value = null
 }
 
 const trendSubtitle = computed(() => {
   if (isTrendLoading.value) return 'Loading report from parking logs'
-  if (activeTrend.value === 'Today') return 'Occupancy report for today'
-  if (activeTrend.value === 'This Week') return 'Occupancy report for this week'
-  return 'Occupancy report for this month'
+  return `Occupancy report for ${reportRange.value.label.toLowerCase()}`
 })
 
 const trendBuckets = computed(() => {
-  const now = dayjs()
+  const range = reportRange.value
 
-  if (activeTrend.value === 'Today') {
+  if (activeReportPeriod.value === 'today') {
     return Array.from({ length: 24 }, (_, hour) => {
-      const start = now.startOf('day').add(hour, 'hour')
+      const start = range.start.add(hour, 'hour')
       return {
         start,
         end: start.add(1, 'hour'),
-        label: start.format('HH:00'),
+        label: start.format('h A'),
       }
     })
   }
 
-  if (activeTrend.value === 'This Week') {
-    return Array.from({ length: 7 }, (_, day) => {
-      const start = now.startOf('week').add(day, 'day')
-      return {
-        start,
-        end: start.add(1, 'day'),
-        label: start.format('ddd'),
-      }
-    })
-  }
-
-  const daysInMonth = now.daysInMonth()
-  return Array.from({ length: daysInMonth }, (_, day) => {
-    const start = now.startOf('month').add(day, 'day')
+  const dayCount = Math.max(1, range.end.startOf('day').diff(range.start.startOf('day'), 'day') + 1)
+  return Array.from({ length: dayCount }, (_, day) => {
+    const start = range.start.startOf('day').add(day, 'day')
     return {
       start,
       end: start.add(1, 'day'),
@@ -432,49 +412,61 @@ const trendBuckets = computed(() => {
   })
 })
 
-const logOverlapsBucket = (log, bucket) => {
-  const entryTime = log.entry_time ?? log.entryTime ?? log.created_at ?? log.createdAt
-  const exitTime = log.exit_time ?? log.exitTime
-  if (!entryTime) return false
+const getLogEntryTime = (log) => log.entry_time ?? log.entryTime ?? log.created_at ?? log.createdAt
+const getLogExitTime = (log) => log.exit_time ?? log.exitTime
+const parseLogDate = (value) => {
+  if (!value) return null
 
-  const entry = dayjs(entryTime)
-  const exit = exitTime ? dayjs(exitTime) : dayjs()
-
-  if (!entry.isValid() || !exit.isValid()) return false
-  return entry.isBefore(bucket.end) && exit.isAfter(bucket.start)
+  const date = dayjs(value)
+  return date.isValid() ? date : null
 }
 
-const trendBars = computed(() => {
-  const buckets = trendBuckets.value
-  const maxPct = getOccupancyPercent(packingLogsStore.slotMax)
+const logEnteredBucket = (log, bucket) => {
+  const entry = parseLogDate(getLogEntryTime(log))
+  return entry && !entry.isBefore(bucket.start) && entry.isBefore(bucket.end)
+}
 
-  return buckets.map((bucket) => {
-    const occupiedCount = occupancyLogs.value.filter((log) => logOverlapsBucket(log, bucket)).length
-    const pct = getOccupancyPercent(occupiedCount)
+const trendEntryCounts = computed(() => trendBuckets.value.map((bucket) =>
+  occupancyLogs.value.filter((log) => logEnteredBucket(log, bucket)).length
+))
+
+const yAxisMax = computed(() => {
+  const maxCount = Math.max(...trendEntryCounts.value, 0)
+  return Math.max(4, Math.ceil(maxCount / 4) * 4)
+})
+
+const yLabels = computed(() => {
+  const step = yAxisMax.value / 4
+  return Array.from({ length: 5 }, (_, index) => Math.round(yAxisMax.value - step * index))
+})
+
+const trendBars = computed(() => {
+  const maxCount = yAxisMax.value
+
+  return trendEntryCounts.value.map((count) => {
+    const height = count > 0 && maxCount > 0 ? Math.max(4, Math.round((count / maxCount) * 100)) : 0
     return {
-      pct,
-      active: pct >= Math.max(70, maxPct * 0.7),
+      count,
+      height,
+      active: count > 0,
     }
   })
 })
 
 const xLabels = computed(() => {
   const buckets = trendBuckets.value
-  if (activeTrend.value === 'Today') {
+  if (activeReportPeriod.value === 'today') {
     return buckets
       .filter((bucket, index) => index === 0 || index === buckets.length - 1 || index % 6 === 0)
       .map((bucket) => bucket.label)
   }
 
-  if (activeTrend.value === 'This Week') return buckets.map((bucket) => bucket.label)
+  if (buckets.length <= 7) return buckets.map((bucket) => bucket.label)
 
   return buckets
     .filter((bucket, index) => index === 0 || index === buckets.length - 1 || (index + 1) % 7 === 0)
     .map((bucket) => bucket.label)
 })
-
-const getLogEntryTime = (log) => log.entry_time ?? log.entryTime ?? log.created_at ?? log.createdAt
-const getLogExitTime = (log) => log.exit_time ?? log.exitTime
 
 const reportRange = computed(() => {
   const now = dayjs()
@@ -513,11 +505,8 @@ const reportRange = computed(() => {
 const periodLogs = computed(() => {
   const range = reportRange.value
   return occupancyLogs.value.filter((log) => {
-    const entryTime = getLogEntryTime(log)
-    if (!entryTime) return false
-
-    const entry = dayjs(entryTime)
-    return entry.isValid() && !entry.isBefore(range.start) && !entry.isAfter(range.end)
+    const entry = parseLogDate(getLogEntryTime(log))
+    return entry && !entry.isBefore(range.start) && !entry.isAfter(range.end)
   })
 })
 
@@ -1063,6 +1052,13 @@ function exportTodayReportToExcel() {
   color: #2563eb;
 }
 
+.chart-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -4px 0 12px;
+}
+
 .today-report {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
@@ -1105,6 +1101,11 @@ function exportTodayReportToExcel() {
   grid-template-columns: repeat(2, minmax(160px, 220px));
   gap: 10px;
   align-items: end;
+}
+
+.custom-report-range--chart {
+  grid-column: auto;
+  margin: -4px 0 12px;
 }
 
 .custom-date-field {

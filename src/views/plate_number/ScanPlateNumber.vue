@@ -98,6 +98,7 @@
           </div>
           <h2 class="gate-status-title">{{ exitInfo.message }}</h2>
           <p class="gate-status-sub" v-if="isCounting">Gate will close in {{ countdown }}s</p>
+         
         </div>
 
         <!-- Session Summary -->
@@ -175,14 +176,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import api from "../../api/api.js";
 import BaseButton from '../../components/base/BaseButton.vue';
 import BaseModal from '../../components/base/BaseModal.vue';
 import { formatDateTime } from '../../utils/dateFormater.js';
+import { usePaymentStore } from '../../stores/payment.js'
+import { storeToRefs } from 'pinia'
 
 
 
+const paymentsStore = usePaymentStore();
 const video = ref(null);
 const plate = ref("");
 const message = ref("");
@@ -199,9 +203,13 @@ let currentCar = ref(null);
 let isAvailableSlot = ref(true);
 let gateStatus = ref(false);
 const receiptRef = ref(null);
+let isPaid = ref(null)
 
-const RESTART_DELAY_SECONDS = 60
-const countdown = ref(RESTART_DELAY_SECONDS)
+const RESTART_COUNTDOWN_SECONDS = ref(30)
+// const EXIT_COUNTDOWN_SECONDS = 20
+let countdownDuration = ref(RESTART_COUNTDOWN_SECONDS.value);
+let paymentConfirmed = ref(false)
+const countdown = ref(30)
 const isCounting = ref(false)
 let timer = null
 let restartTimer = null
@@ -227,6 +235,17 @@ const exitInfo = reactive({
   totalFee: 'null',
 })
 
+// ✅ storeToRefs preserves reactivity when destructuring
+const { md5, paid } = storeToRefs(paymentsStore)  // ✅ reactive refs
+
+// Fires every time parkingTerminal generates a new QR
+watch(md5, (newMd5) => {
+  console.log('md5 changed:', newMd5)  // you should see this now
+  if (!newMd5) return
+
+  // start verifying with the fresh md5
+  // startVerifying(newMd5)
+})
 const clearFrame = () => {
   canvas.value = null;
   plate.value = "";
@@ -236,6 +255,7 @@ const clearFrame = () => {
 }
 
 onMounted(async () => {
+  // ENTRY_COUNTDOWN_SECONDS.value = usePayments.RESTART_COUNTDOWN_SECONDS;
 
   startEntry();
   getCarCapacity();
@@ -276,6 +296,8 @@ const startEntry = async () => {
   clearCountdownTimer();
   clearFrame();
   mode = "entry";
+  gateInfo.value = false
+  countdown.value
   // isRunning.value = true;
   isEntry.value = true;
   exitInfo.totalFee = 'null';
@@ -292,16 +314,18 @@ const startEntry = async () => {
 };
 
 // ===== EXIT =====
-const startExit = async () => {
-  clearRestartTimer();
-  clearCountdownTimer();
-  clearFrame();
-  mode = "exit";
-  isEntry.value = true;
+// const startExit = async () => {
+//   clearRestartTimer();
+//   clearCountdownTimer();
+//   clearFrame();
+//   mode = "exit";
+//   paymentConfirmed.value = false
+//   countdownDuration = EXIT_COUNTDOWN_SECONDS
+//   isEntry.value = true;
 
-  await startCamera();
-  await getCarCapacity();
-};
+//   await startCamera();
+//   await getCarCapacity();
+// };
 
 
 // ===== START CAMERA =====
@@ -312,12 +336,16 @@ const startCamera = async () => {
 
   const devices = await navigator.mediaDevices.enumerateDevices()
   const videoDevices = devices.filter(d => d.kind === 'videoinput')
-  console.log('a device video : ',devices);
-  
+  // console.log('a device video : ', devices);
+
   const selectedDeviceId = videoDevices[1].deviceId
-  console.log('available device  : ',videoDevices) // see all cameras + their deviceIds
-  stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  console.log('stream ', stream);
+  // console.log('available device  : ', videoDevices) // see all cameras + their deviceIds
+  stream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      deviceId: { exact: selectedDeviceId }
+    }
+  });
+  // console.log('stream ', stream);
 
   video.value.srcObject = stream;
 
@@ -325,23 +353,42 @@ const startCamera = async () => {
 
   socket.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    if (data.data?.result == false) {
+    console.log('Raw exit summary websocket data:', data);
+    gateInfo.value = data.gate_status === 'open';
+    if (data.data?.data?.entry_info?.status === 'OUT') {
+      countdown.value =1000;
       gateInfo.value = false;
-      exitInfo.message = data.data?.msg;
-      exitInfo.plateNumber = data?.plate;
-      scheduleScanRestart();
+      const intervalIsPaid = setInterval(() => {
+        console.log(' waiting... it paid right : ', paymentsStore.isPaid);
+        paymentsStore.paymentIsPaid({ plate_number: data.data?.data?.entry_info?.plate_number, exit_time: data.data?.data?.entry_info?.exit_time });
+        if (paymentsStore.isPaid === true) {
+          gateInfo.value= true;
+          paymentsStore.isPaid = false;
+          countdown.value = 15;
+          clearInterval(intervalIsPaid);
+        }
+       
+      
+      }, 1000)
+    }
+    if (data.data?.data?.entry_info?.status === 'IN') {
+      countdown.value = 30;
+
+    }
+
+    if (data.data?.result == false) {
+      exitInfo.message = data.data?.msg || 'No plate detected';
+      exitInfo.plateNumber = data?.plate || '--';
       return;
     }
-    // if plate detected
+
     if (data.plate) {
       clearInterval(interval);
       scheduleScanRestart();
       getCarCapacity();
-      gateInfo.value = true;
 
-      //------------show information about car entry and exit-----------
       exitInfo.plateNumber = data?.plate;
-      exitInfo.message = data.data?.msg;
+      exitInfo.message = data.gate_message || data.data?.msg;
       exitInfo.entryTime = formatDateTime(data.data.data.entry_info?.entry_time);
       exitInfo.status = data.data.data?.entry_info?.status;
       exitInfo.vehicleType = data.data.data?.entry_info?.vehicle_type || '--';
@@ -349,9 +396,7 @@ const startCamera = async () => {
       exitInfo.duration = data.data.data?.duration?.hours + "h " + data.data.data?.duration?.minutes + "m " + data.data.data?.duration?.seconds + "s";
       exitInfo.billableHours = data.data.data?.billableHours;
       exitInfo.totalFee = data.data.data?.finalFee || 'null';
-
     }
-
   };
   interval = setInterval(sendFrame, 600);
 };
@@ -399,10 +444,13 @@ const clearRestartTimer = () => {
 }
 
 const scheduleScanRestart = () => {
+
   stopCamera();
   startCountdown();
   clearRestartTimer();
   restartTimer = setTimeout(() => {
+
+
     restartTimer = null;
     gateInfo.value = false;
     clearFrame();
@@ -411,7 +459,7 @@ const scheduleScanRestart = () => {
       return;
     }
     startEntry();
-  }, RESTART_DELAY_SECONDS * 1000);
+  }, countdown.value * 1000);
 }
 
 
@@ -474,28 +522,28 @@ const printReceipt = () => {
   win.document.close()
   win.print()
 }
+
 const startCountdown = () => {
   clearCountdownTimer()
-  countdown.value = RESTART_DELAY_SECONDS
   isCounting.value = true
 
   timer = setInterval(() => {
     countdown.value--
-
+    // console.log('is paid', usePayments.paid);
     if (countdown.value <= 0) {
       clearInterval(timer)
       isCounting.value = false
 
+      startEntry();
       // action after 15s
       gateInfo.value = false
       // or window.print()
     }
   }, 1000)
 }
+
+// Confirm payment for exit mode - call this when payment is completed
 </script>
-
-
-
 <!-- test auto scan  -->
 
 

@@ -7,7 +7,7 @@ import { get } from '@vueuse/core';
 export const useAuthStore = ('auth', () => {
     const token = ref(localStorage.getItem('token'));
     const user = ref(null);
-
+    const me = ref(null);
     const isAuthenticated = computed(() => !!token.value && !!user.value);
     const login = async (payload) => {
 
@@ -50,14 +50,21 @@ export const useAuthStore = ('auth', () => {
         localStorage.removeItem("token");
     };
 
+    const getMe =async ()=>{
+        const res = await api.get("/auth/me");
+        return res.data.data;
+    }
+
     return {
         token,
         user,
         isAuthenticated,
+        me,
         login,
         clearAuth,
         logout,
-        getProfile
+        getProfile,
+        getMe
     }
 
 })

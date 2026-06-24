@@ -17,11 +17,11 @@
             <text x="7" y="21" font-family="Georgia,serif" font-weight="700" font-size="18" fill="white">P</text>
           </svg>
         </div>
-        <span class="logo-text">ParkAdmin <span class="logo-pro">Pro</span></span>
+        <span class="logo-text">NIB <span class="logo-pro">Parking</span></span>
       </div>
 
       <h1 class="title">Welcome Back</h1>
-      <p class="subtitle">Enter your credentials to access the terminal</p>
+      <p class="subtitle">Enter your credentials to access the dashboard</p>
 
       <!-- Form -->
       <div class="field-group">

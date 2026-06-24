@@ -2,25 +2,11 @@
   <header class="navbar">
     <!-- Search -->
      <div class="brand-text">
-          <span class="brand-name">Parking Management</span>
-          <span class="brand-sub">URBAN INFRASTRUCTURE V2.1</span>
+          <span class="brand-name">NIB Parking Management</span>
+          <span class="brand-sub">National Institute of Bussiness</span>
         </div>
-    <div class="search-wrapper">
-      <span class="search-icon">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-      </span>
-      <input
-        v-model="searchQuery"
-        class="search-input"
-        type="text"
-        placeholder="Search rules, zones, or vehicles..."
-        @keyup.enter="onSearch"
-      />
-    </div>
-
+  
+   
     <!-- Right Actions -->
     <div class="actions">
       <!-- Notifications -->
@@ -58,8 +44,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
+
+const me = ref(null);
+const authStore = useAuthStore();
+onMounted( async()=>{
+  me.value = await authStore.getMe();
+  console.log('user Data : ', me.value)
+})
 // Props
 const props = defineProps({
   user: {

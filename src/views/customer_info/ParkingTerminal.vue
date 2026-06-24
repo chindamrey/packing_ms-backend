@@ -9,7 +9,7 @@
           <span class="brand-sub">PREMIUM PARKING</span>
         </div>
       </div>
-      <div class="slot-card">
+      <div v-if="!showQrCard" class="slot-card">
         <div class="slot-card-header">
           <div>
 
@@ -17,11 +17,13 @@
             <div class="slot-number">{{ capacity.totalCapacity - capacity.slotsInUse }}</div>
           </div>
 
-          <span :class="['status-badge', capacity.totalCapacity - capacity.slotsInUse > 0 ? 'badge-green' : 'badge-red']">{{ capacity.totalCapacity - capacity.slotsInUse > 0 ? 'AVAILABLE' : 'FULL' }}</span>
+          <span
+            :class="['status-badge', capacity.totalCapacity - capacity.slotsInUse > 0 ? 'badge-green' : 'badge-red']">{{
+              capacity.totalCapacity - capacity.slotsInUse > 0 ? 'AVAILABLE' : 'FULL' }}</span>
         </div>
       </div>
 
-      <div class="usage-card">
+      <div v-if="!showQrCard" class="usage-card">
 
         <div class="usage-stats">
           <div class="usage-item">
@@ -40,17 +42,22 @@
       </div>
 
       <!-- QR Payment -->
-      <div class="section-label">SCAN TO PAY</div>
 
-      <div class="qr-card">
-        <div class="qr-frame">
-          <canvas ref="qrCanvas"></canvas>
+      <div v-else-if="showQrCard" class="qr-card">
+        <div class="section-label">SCAN TO PAY</div>
+        <div class="qr-frame" :class="{ 'qr-frame--paid': qrPaidOverlayVisible }">
+          <KhqrCard :qr-image-src="qrPaymentSrc">{{ finalTotal }}</KhqrCard>
+          <Transition name="qr-paid-overlay">
+            <div v-if="qrPaidOverlayVisible" class="qr-paid-overlay">
+              <span class="qr-paid-overlay__badge">PAID</span>
+              <span class="qr-paid-overlay__text">Payment received</span>
+            </div>
+          </Transition>
+
         </div>
         <div class="qr-meta">
           <span class="qr-plate">{{ vehicle.plate }}</span>
-          <span class="qr-amount">${{ formattedTotal }}</span>
         </div>
-        <p class="qr-hint">Point camera at code to pay instantly</p>
       </div>
     </aside>
 
@@ -61,6 +68,16 @@
           <span :class="['pulse-dot', wsConnected ? 'dot-green' : 'dot-red']"></span>
           Terminal #{{ terminalInfo.id }} • {{ wsConnected ? 'Secure Link Active' : 'Connecting…' }}
         </div>
+        <div class="card-header">
+          <span class="card-label">GATE </span>
+          <span class="status-chip" :class="gateStatus ? 'chip-green' : 'chip-red'">
+            <span class="chip-dot"></span>
+
+            {{ gateStatus ? 'OPEN' : 'CLOSED' }}
+
+          </span>
+        </div>
+
         <div class="terminal-time">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
@@ -152,18 +169,41 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
-import QRCode from 'qrcode'
 import { formatDateTime } from '../../utils/dateFormater.js'
+import KhqrCard from '../../components/KhqrCard.vue'
 import api from '../../api/api.js'
+import { usePackingLogsStore } from '../../stores/packing_logs.js'
+import { usePaymentStore } from '../../stores/payment.js'
 
 
 // ── Terminal meta ──────────────────────────────────────────────
 const SOCKET_URL = 'ws://localhost:8765'
+const RESTART_DELAY_SECONDS = ref(3000)
+const DEFAULT_GATE_COUNTDOWN_SECONDS = ref(RESTART_DELAY_SECONDS.value)
+const PAYMENT_GATE_COUNTDOWN_SECONDS = ref(RESTART_DELAY_SECONDS.value)
 
 const terminalInfo = ref({ id: '402' })
 const currentTime = ref('')
 const wsConnected = ref(false)
+const packingLogsStore = usePackingLogsStore()
 let socket = null
+const gateStatus = ref(false)
+const gateCountdown = ref(null)
+const gateCountdownDuration = ref(RESTART_DELAY_SECONDS.value)
+const paymentSuccessVisible = ref(false)
+const paymentSuccessMessage = ref('Dear client, you paid successfully. The gate will open now.')
+const paymentGateReleased = ref(false)
+const qrPaidOverlayVisible = ref(false)
+const qrCardHidden = ref(false)
+const gateMessage = ref('--')
+let gateCountdownTimer = null
+const payments = usePaymentStore();
+let paymentSuccessTimer = null
+let paymentVerifyTimer = null
+let finalTotal = ref(0)
+let md5_hash = ref(null);
+let status = ref(false);
+let isVerifying = false;
 // Capacity state
 
 
@@ -189,6 +229,7 @@ onMounted(() => {
 })
 onUnmounted(() => {
   clearInterval(clockTimer)
+  clearGateCountdownTimer()
   closeWebSocket()
 })
 
@@ -200,14 +241,15 @@ const occupancyPercent = computed(() =>
 const getCarCapacity = async () => {
   try {
     const res = await api.get('/plates/all-entry');
+    // console.log('data test ; ', res.data.data);
     const data = res.data.data;
     // console.log("Car capacity:", data);
     capacity.slotsInUse = data?.total;
     capacity.totalCapacity = data.slot_limit?.total_slot;
 
     capacity.availableSlots = capacity.slotsInUse < capacity.totalCapacity ? capacity.totalCapacity - capacity.slotsInUse : 0;
-    console.log('all plates : ',data);
-    
+    // console.log('all plates : ', data);
+
   } catch (error) {
     console.error(error);
   }
@@ -228,6 +270,7 @@ onMounted(() => {
     animatedSlots.value = Math.min(animatedSlots.value + step, target)
     if (animatedSlots.value >= target) clearInterval(t)
   }, 30)
+
 })
 
 // ── Vehicle / session state ────────────────────────────────────
@@ -250,6 +293,23 @@ const formattedTotal = computed(() =>
   Number(session.total || 0).toFixed(2)
 )
 
+const normalizedPaymentStatus = computed(() =>
+  String(session.paymentStatus || '').trim().toUpperCase()
+)
+
+const showParkingStats = computed(() =>
+  !['OUT', 'LEFT', 'EXIT', 'DEPARTED'].includes(normalizedPaymentStatus.value)
+)
+
+const showQrCard = computed(() =>
+  (['OUT', 'LEFT', 'EXIT', 'DEPARTED'].includes(normalizedPaymentStatus.value) && !payments.paid && !qrCardHidden.value) || qrPaidOverlayVisible.value
+)
+
+const requiresPaymentCheck = computed(() => normalizedPaymentStatus.value === 'OUT')
+const effectiveGateStatus = computed(() =>
+  requiresPaymentCheck.value ? paymentGateReleased.value : gateStatus.value
+)
+
 const paymentBadgeClass = computed(() => ({
   'badge-ready': session.paymentStatus === 'Ready for Payment',
   'badge-paid': session.paymentStatus === 'Paid',
@@ -257,23 +317,11 @@ const paymentBadgeClass = computed(() => ({
 }))
 
 // ── QR Code ────────────────────────────────────────────────────
-const qrCanvas = ref(null)
+const qrPaymentSrc = ref();
 
-const qrPaymentUrl = computed(() =>
-  `https://pay.urbanflow.io?plate=${vehicle.plate}&amount=${formattedTotal.value}&session=UF-${terminalInfo.value.id}`
-)
+// const qrPaymentSrc = computed(() => packingLogsStore.paymentQrSrc || qrPaymentBase64.value)
 
-async function generateQR() {
-  if (!qrCanvas.value) return
-  await QRCode.toCanvas(qrCanvas.value, qrPaymentUrl.value, {
-    width: 160,
-    margin: 2,
-    color: { dark: '#0f172a', light: '#ffffff' },
-  })
-}
 
-onMounted(() => generateQR())
-watch(qrPaymentUrl, generateQR)
 
 // ── WebSocket helpers ──────────────────────────────────────────
 const parseSocketData = (rawData) => {
@@ -301,6 +349,162 @@ const formatDuration = (duration) => {
 }
 
 // ── Map incoming WebSocket payload → local state ───────────────
+const clearGateCountdownTimer = () => {
+  if (gateCountdownTimer) {
+    clearInterval(gateCountdownTimer)
+    gateCountdownTimer = null
+  }
+}
+
+
+const closeGateCountdown = () => {
+  gateCountdown.value = null
+  clearGateCountdownTimer()
+}
+
+const clearPaymentSuccessTimer = () => {
+  if (paymentSuccessTimer) {
+    clearTimeout(paymentSuccessTimer)
+    paymentSuccessTimer = null
+  }
+}
+
+const clearPaymentVerifyTimer = () => {
+  if (paymentVerifyTimer) {
+    clearInterval(paymentVerifyTimer)
+    paymentVerifyTimer = null
+  }
+}
+
+const closeGate = () => {
+  // gateStatus.value = false
+  paymentGateReleased.value = false
+  gateCountdownDuration.value = RESTART_DELAY_SECONDS.value
+  closeGateCountdown()
+}
+
+const resetPaymentSuccessModal = () => {
+  paymentSuccessVisible.value = false
+  paymentGateReleased.value = false
+  qrPaidOverlayVisible.value = false
+  clearPaymentSuccessTimer()
+}
+
+const showPaymentSuccessModal = (message) => {
+  clearPaymentSuccessTimer()
+  if (message) {
+    paymentSuccessMessage.value = message
+  }
+  paymentSuccessVisible.value = true
+
+  paymentSuccessTimer = setTimeout(() => {
+    paymentSuccessVisible.value = false
+    paymentSuccessTimer = null
+  }, 2200)
+}
+
+const isPaymentPaidResponse = (response) => {
+  const statusCandidates = [
+    response?.status,
+    response?.payment_status,
+    response?.data?.status,
+    response?.data?.payment_status,
+    response?.data?.data?.status,
+    response?.data?.data?.payment_status,
+  ]
+
+  return statusCandidates.some((value) => {
+    const normalized = String(value ?? '').trim().toLowerCase()
+    return ['paid', 'success', 'successful', 'completed', 'done', 'true'].includes(normalized)
+  })
+}
+
+
+const startPaymentVerification = () => {
+  clearPaymentVerifyTimer()
+
+  paymentVerifyTimer = setInterval(async () => {
+    if (!md5_hash.value) return  // ✅ guard against null md5
+    await verifyPayment({ md5: md5_hash.value })
+  }, 1000)
+}
+
+const handlePaymentSuccess = () => {
+  clearPaymentVerifyTimer()
+  session.paymentStatus = 'PAID'
+  // gateStatus.value = true
+  paymentGateReleased.value = true
+  gateCountdownDuration.value = PAYMENT_GATE_COUNTDOWN_SECONDS
+
+  showPaymentSuccessModal('Dear client, you paid successfully. The gate will close again in 15 seconds.')
+  startGateCountdown(PAYMENT_GATE_COUNTDOWN_SECONDS)
+}
+
+const generateQR = async (payload) => {
+  const qr = await payments.generateQR(payload)
+  // console.log('md5 : ', qr);
+  md5_hash.value = qr.data.md5;
+
+  qrPaymentSrc.value = qr.data?.qrBase64
+  qrPaidOverlayVisible.value = false
+}
+
+
+const verifyPayment = async (payload) => {
+
+  if (isVerifying) return;
+
+  isVerifying = true;
+
+  try {
+    const res = await payments.verifyPaymentByMd5(payload);
+    console.log(res)
+    if (res?.data?.responseCode === 0) {
+      payments.paid = true;
+      gateStatus.value = true;
+      payments.RESTART_COUNTDOWN_SECONDS = 20;
+      qrPaidOverlayVisible.value = true
+
+      clearInterval(paymentVerifyTimer);
+      paymentVerifyTimer = null;
+
+      // Hide overlay and QR card after 5 seconds
+      setTimeout(() => {
+        qrPaidOverlayVisible.value = false
+        qrCardHidden.value = true
+        payments.paid = false;
+      }, 5000)
+    }
+    console.log('verify payment', payments.paid);
+  }
+  catch (e) {
+
+    payments.paid = false
+  }
+  finally {
+    isVerifying = false;
+  }
+};
+const startGateCountdown = (seconds) => {
+  clearGateCountdownTimer()
+  gateCountdown.value = Math.max(0, Math.ceil(Number(seconds) || 0))
+
+  if (gateCountdown.value === 0) {
+    closeGateCountdown()
+    return
+  }
+
+  gateCountdownTimer = setInterval(() => {
+    gateCountdown.value = Math.max(0, gateCountdown.value - 1)
+
+    if (gateCountdown.value <= 0) {
+      closeGate()
+    }
+  }, 1000)
+}
+
+
+
 const updateFromPayload = (payload) => {
   if (!payload) return
 
@@ -319,6 +523,14 @@ const updateFromPayload = (payload) => {
   session.total = sessionData.finalFee ?? sessionData.totalFee ?? '0.00'
   session.discount = sessionData.discount ?? sessionData.discount_amount ?? 0
   session.paymentStatus = entryInfo.status;
+
+  // gateStatus.value = payload.gate_status === 'open'
+  gateMessage.value = payload.gate_message ?? payload.data?.msg ?? gateMessage.value
+
+
+  if (!gateStatus.value) {
+    closeGateCountdown()
+  }
 }
 
 // ── WebSocket lifecycle ────────────────────────────────────────
@@ -326,18 +538,41 @@ const connectWebSocket = () => {
   socket = new WebSocket(SOCKET_URL)
 
   socket.onopen = () => {
-    console.log('Connected to exit summary websocket')
+
     wsConnected.value = true
   }
 
   socket.onmessage = (event) => {
-    console.log('Raw exit summary websocket data:', event.data)
+    // console.log('Raw exit summary websocket data:', event.data)
     const data = parseSocketData(event.data)
+    // console.log('Raw exit summary websocket data:', data)
+    if (data.plate !== null) {
+      getCarCapacity()
+    }
+    if (data.data?.data?.entry_info?.status === 'IN') {
+      gateStatus.value = true
+    }
+    // In socket.onmessage, replace the bottom block:
+    if (data.data?.data?.entry_info?.status === 'OUT') {// ✅ Await QR generation FIRST, then start verification
+      generateQR({
+        amount: data.data?.data?.finalFee,
+        plate_number: data.plate,
+        currency: 'USD',
+      }).then(() => {
+        startPaymentVerification()  // ✅ uses your proper cleanup + md5 is ready
+      })
+     
+      gateStatus.value = false
+
+      finalTotal.value = data.data?.data?.finalFee
+
+
+    }
     if (data) updateFromPayload(data)
   }
 
   socket.onerror = (error) => {
-    console.error('Exit summary websocket error:', error)
+
     wsConnected.value = false
   }
 
@@ -347,20 +582,36 @@ const connectWebSocket = () => {
 }
 
 const closeWebSocket = () => {
+  clearGateCountdownTimer()
+  clearPaymentSuccessTimer()
   if (socket) {
     socket.close()
     socket = null
   }
 }
 
-onMounted(() => connectWebSocket())
+onMounted(() => {
+  RESTART_DELAY_SECONDS.value = payments.RESTART_COUNTDOWN_SECONDS;
+  payments.paid = false;
+  connectWebSocket()
+})
+
+watch(effectiveGateStatus, (isOpen) => {
+  if (isOpen && !gateCountdownTimer) {
+    startGateCountdown(RESTART_DELAY_SECONDS)
+    return
+  }
+
+  if (!isOpen) {
+    closeGateCountdown()
+  }
+}, { immediate: true })
 
 // ── Actions ────────────────────────────────────────────────────
 function handlePrint() {
   window.print()
 }
 </script>
-
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap');
 
@@ -583,6 +834,7 @@ function handlePrint() {
 }
 
 .qr-frame {
+  position: relative;
   background: #ffffff;
   border-radius: 10px;
   padding: 10px;
@@ -592,6 +844,89 @@ function handlePrint() {
 .qr-frame canvas {
   display: block;
   border-radius: 4px;
+}
+
+.qr-frame--paid {
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, .32), 0 18px 40px rgba(15, 23, 42, .18);
+}
+
+.qr-paid-overlay {
+  position: absolute;
+  inset: 10px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, .82);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  text-align: center;
+  color: #fff;
+}
+
+.qr-paid-overlay__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 76px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+
+.qr-paid-overlay__text {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, .92);
+}
+
+.qr-paid-overlay-enter-active,
+.qr-paid-overlay-leave-active {
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.qr-paid-overlay-enter-from,
+.qr-paid-overlay-leave-to {
+  opacity: 0;
+  transform: scale(.96);
+}
+
+/* Gate status card */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* margin-bottom: 10px; */
+}
+
+.card-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.1em;
+}
+
+.status-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.chip-green {
+  background: #aaf0d1;
+  color: #0b7c1a;
+}
+
+.chip-red {
+  background: #fecaef;
+  color: #be185d;
 }
 
 .qr-meta {
@@ -697,6 +1032,14 @@ function handlePrint() {
   gap: 6px;
   font-family: 'DM Mono', monospace;
   font-size: 11.5px;
+}
+
+.chip-green {
+  color: #0b7c1a;
+}
+
+.chip-red {
+  color: #be185d;
 }
 
 .content-area {
