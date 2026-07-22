@@ -183,6 +183,7 @@ import BaseModal from '../../components/base/BaseModal.vue';
 import { formatDateTime } from '../../utils/dateFormater.js';
 import { usePaymentStore } from '../../stores/payment.js'
 import { storeToRefs } from 'pinia'
+import { set } from '@vueuse/core';
 
 
 
@@ -366,6 +367,9 @@ const startCamera = async () => {
           paymentsStore.isPaid = false;
           countdown.value = 15;
           clearInterval(intervalIsPaid);
+          setTimeout(() => {
+            window.location.reload(true);
+          },15000)
         }
        
       
@@ -532,6 +536,7 @@ const startCountdown = () => {
     // console.log('is paid', usePayments.paid);
     if (countdown.value <= 0) {
       clearInterval(timer)
+
       isCounting.value = false
 
       startEntry();

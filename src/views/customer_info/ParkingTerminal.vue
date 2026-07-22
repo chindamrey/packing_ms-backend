@@ -462,7 +462,7 @@ const verifyPayment = async (payload) => {
     if (res?.data?.responseCode === 0) {
       payments.paid = true;
       gateStatus.value = true;
-      payments.RESTART_COUNTDOWN_SECONDS = 20;
+      payments.RESTART_COUNTDOWN_SECONDS = 15;
       qrPaidOverlayVisible.value = true
 
       clearInterval(paymentVerifyTimer);
@@ -473,6 +473,8 @@ const verifyPayment = async (payload) => {
         qrPaidOverlayVisible.value = false
         qrCardHidden.value = true
         payments.paid = false;
+        payments.isPaid = false;
+        window.location.reload(true);
       }, 5000)
     }
     console.log('verify payment', payments.paid);
