@@ -382,16 +382,16 @@ const startCamera = async () => {
 
     if (data.data?.result == false) {
       exitInfo.message = data.data?.msg || 'No plate detected';
-      exitInfo.plateNumber = data?.plate || '--';
+      exitInfo.plateNumber = data?.data?.data?.entry_info?.plate_number || '--';
       return;
     }
 
-    if (data.plate) {
+    if (data?.data?.data?.entry_info?.plate_number) {
       clearInterval(interval);
       scheduleScanRestart();
       getCarCapacity();
 
-      exitInfo.plateNumber = data?.plate;
+      exitInfo.plateNumber = data?.data?.data?.entry_info?.plate_number || '--';
       exitInfo.message = data.gate_message || data.data?.msg;
       exitInfo.entryTime = formatDateTime(data.data.data.entry_info?.entry_time);
       exitInfo.status = data.data.data?.entry_info?.status;
@@ -402,7 +402,7 @@ const startCamera = async () => {
       exitInfo.totalFee = data.data.data?.finalFee || 'null';
     }
   };
-  interval = setInterval(sendFrame, 600);
+  interval = setInterval(sendFrame, 1000);
 };
 
 

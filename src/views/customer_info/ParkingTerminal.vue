@@ -558,7 +558,7 @@ const connectWebSocket = () => {
     if (data.data?.data?.entry_info?.status === 'OUT') {// ✅ Await QR generation FIRST, then start verification
       generateQR({
         amount: data.data?.data?.finalFee,
-        plate_number: data.plate,
+        plate_number: data.data?.data?.entry_info?.plate_number,
         currency: 'USD',
       }).then(() => {
         startPaymentVerification()  // ✅ uses your proper cleanup + md5 is ready
