@@ -64,12 +64,8 @@
             </div>
 
             <div class="feed-footer">
-              <span class="gps-coords">40.7128° N, 74.0060° W</span>
-              <span class="timestamp">2023-11-24 14:45:12</span>
-              <div class="feed-icons">
-                <span class="feed-icon">📹</span>
-                <span class="feed-icon">📡</span>
-              </div>
+              <p>&copy; 2026 Packing MS. All rights reserved.</p>
+              
             </div>
           </div>
         </div>
@@ -98,7 +94,7 @@
           </div>
           <h2 class="gate-status-title">{{ exitInfo.message }}</h2>
           <p class="gate-status-sub" v-if="isCounting">Gate will close in {{ countdown }}s</p>
-         
+
         </div>
 
         <!-- Session Summary -->
@@ -357,22 +353,22 @@ const startCamera = async () => {
     console.log('Raw exit summary websocket data:', data);
     gateInfo.value = data.gate_status === 'open';
     if (data.data?.data?.entry_info?.status === 'OUT') {
-      countdown.value =1000;
+      countdown.value = 1000;
       gateInfo.value = false;
       const intervalIsPaid = setInterval(() => {
         console.log(' waiting... it paid right : ', paymentsStore.isPaid);
         paymentsStore.paymentIsPaid({ plate_number: data.data?.data?.entry_info?.plate_number, exit_time: data.data?.data?.entry_info?.exit_time });
         if (paymentsStore.isPaid === true) {
-          gateInfo.value= true;
+          gateInfo.value = true;
           paymentsStore.isPaid = false;
           countdown.value = 15;
           clearInterval(intervalIsPaid);
           setTimeout(() => {
             window.location.reload(true);
-          },15000)
+          }, 15000)
         }
-       
-      
+
+
       }, 1000)
     }
     if (data.data?.data?.entry_info?.status === 'IN') {
